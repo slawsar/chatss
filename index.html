@@ -10,329 +10,364 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <style>
-        :root {
-            --primary-color: #4a6fff;
-            --secondary-color: #8a96fd;
-            --text-color: #333;
-            --bg-color: #fff;
-            --border-color: #e0e0e0;
-            --user-msg-bg: #f0f5ff;
-            --model-msg-bg: #f9f9f9;
-            --sidebar-bg: #f5f7ff;
-            --input-bg: #fff;
-            --transition-speed: 0.3s;
-            --code-bg: #f6f8fa;
-            --blockquote-border: #dfe2e5;
-            --blockquote-bg: #f6f8fa;
-            --table-border: #dfe2e5;
-            --table-header-bg: #f6f8fa;
-            --star-inactive: #d4d4d4;
-            --star-active: #FFD700;
-            --best-answer-bg: #f0fff0;
-            --best-answer-border: #4CAF50;
-        }
+:root {
+        --primary-color: #4a6fff;
+        --secondary-color: #8a96fd;
+        --text-color: #333;
+        --bg-color: #fff;
+        --border-color: #e0e0e0;
+        --user-msg-bg: #f0f5ff;
+        --model-msg-bg: #f9f9f9;
+        --sidebar-bg: #f5f7ff;
+        --input-bg: #fff;
+        --transition-speed: 0.3s;
+        --code-bg: #f6f8fa;
+        --blockquote-border: #dfe2e5;
+        --blockquote-bg: #f6f8fa;
+        --table-border: #dfe2e5;
+        --table-header-bg: #f6f8fa;
+        --star-inactive: #d4d4d4;
+        --star-active: #FFD700;
+        --best-answer-bg: #f0fff0;
+        --best-answer-border: #4CAF50;
+    }
 
-        [data-theme="dark"] {
-            --primary-color: #5d7fff;
-            --secondary-color: #6a7aff;
-            --text-color: #e0e0e0;
-            --bg-color: #1a1a1a;
-            --border-color: #444;
-            --user-msg-bg: #2d3757;
-            --model-msg-bg: #2a2a2a;
-            --sidebar-bg: #252836;
-            --input-bg: #2a2a2a;
-            --code-bg: #2d2d2d;
-            --blockquote-border: #444;
-            --blockquote-bg: #2d2d2d;
-            --table-border: #444;
-            --table-header-bg: #2d2d2d;
-            --star-inactive: #555;
-            --star-active: #FFD700;
-            --best-answer-bg: #1e3320;
-            --best-answer-border: #4CAF50;
-        }
+    [data-theme="dark"] {
+        --primary-color: #5d7fff;
+        --secondary-color: #6a7aff;
+        --text-color: #e0e0e0;
+        --bg-color: #1a1a1a;
+        --border-color: #444;
+        --user-msg-bg: #2d3757;
+        --model-msg-bg: #2a2a2a;
+        --sidebar-bg: #252836;
+        --input-bg: #2a2a2a;
+        --code-bg: #2d2d2d;
+        --blockquote-border: #444;
+        --blockquote-bg: #2d2d2d;
+        --table-border: #444;
+        --table-header-bg: #2d2d2d;
+        --star-inactive: #555;
+        --star-active: #FFD700;
+        --best-answer-bg: #1e3320;
+        --best-answer-border: #4CAF50;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: background-color var(--transition-speed), color var(--transition-speed);
-        }
+    /* Poprawki responsywności i przewijania */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        transition: background-color var(--transition-speed), color var(--transition-speed);
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden; /* Zablokuj przewijanie całej strony */
+    }
+
+    .main-container {
+        display: flex;
+        height: calc(100vh - 60px); /* Odejmij wysokość nawigacji */
+        overflow: hidden;
+    }
+
+    .sidebar {
+        width: 300px;
+        max-height: 100%;
+        overflow-y: auto;
+        flex-shrink: 0;
+        background-color: var(--sidebar-bg);
+        border-right: 1px solid var(--border-color);
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--sidebar-bg);
+    }
+
+    .sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+        background: var(--sidebar-bg);
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 4px;
+    }
+
+    .chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        max-height: 100%;
+    }
+
+    .view-mode-container {
+        flex-shrink: 0;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--bg-color);
+    }
+
+    .chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: var(--bg-color);
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 4px;
+    }
+
+    .comparison-container {
+        flex: 1;
+        overflow-x: auto;
+        overflow-y: hidden;
+        display: flex;
+        flex-direction: column;
+        max-height: 100%;
+        padding: 20px;
+    }
+
+    .chat-input-container {
+        flex-shrink: 0;
+        padding: 15px 20px;
+        border-top: 1px solid var(--border-color);
+        background-color: var(--bg-color);
+    }
+
+    /* Responsywność dla mniejszych ekranów */
+    @media (max-width: 992px) {
+        .main-container {
             flex-direction: column;
             height: 100vh;
         }
-
-        nav {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            background-color: var(--bg-color);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 10;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-right: 30px;
-        }
-
-        .nav-section {
-            display: flex;
-            align-items: center;
-            margin-right: 20px;
-        }
-
-        .api-key-input {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 14px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            width: 250px;
-        }
-
-        .api-status {
-            margin-left: 10px;
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .theme-toggle {
-            margin-left: auto;
-            cursor: pointer;
-            padding: 5px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-        }
-
-        .view-toggle {
-            margin-left: 10px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-        }
-
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
+        
         .sidebar {
-            width: 300px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-heading {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .model-list {
-            list-style: none;
-            flex: 1;
-        }
-
-.model-item {
-    padding: 8px 12px; /* Zmniejszony padding */
-    margin-bottom: 6px; /* Zmniejszony margines dolny */
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background-color: var(--bg-color);
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: all 0.2s;
-}
-
-        .model-item.selected {
-            border-color: var(--primary-color);
-            background-color: rgba(74, 111, 255, 0.05);
-        }
-        
-        .model-item.free {
-            border-left: 4px solid #4CAF50;
-        }
-        
-
-.model-name {
-    font-weight: 600;
-    flex: 1;
-    font-size: 12px; /* Zmniejszona czcionka */
-    white-space: normal; /* Pozwala na zawijanie tekstu */
-    line-height: 1.2; /* Zmniejszony odstęp między wierszami */
-    max-height: 2.4em; /* Maksymalna wysokość - dwie linie tekstu */
-    overflow: visible; /* Nie ukrywaj tekstu */
-    padding-right: 6px; /* Zmniejszony padding */
-}
-
-        .model-description {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-bottom: 5px;
-        }
-
-        .model-specs {
-            display: flex;
-            font-size: 11px;
-            opacity: 0.7;
-        }
-
-        .model-spec {
-            margin-right: 10px;
-        }
-
-.checkbox-container {
-    flex-shrink: 0; /* Zapobiega zmniejszaniu checkboxa */
-    margin-left: 4px !important; /* Zmniejszony odstęp od lewej */
-}
-
-        .history-clear {
-            margin-top: 20px;
-            padding: 8px 15px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        }
-
-        .history-clear:hover {
-            background-color: rgba(74, 111, 255, 0.1);
-        }
-
-        .history-export {
-            margin-top: 10px;
-            padding: 8px 15px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        }
-
-        .history-export:hover {
-            background-color: rgba(74, 111, 255, 0.1);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .message {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message-header {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: var(--primary-color);
-        }
-
-        .user-message .message-header {
-            color: var(--primary-color);
-        }
-
-        .model-message .message-header {
-            color: var(--secondary-color);
-        }
-
-        .message-content {
-            padding: 12px 16px;
-            border-radius: 8px;
-            line-height: 1.5;
-            max-width: 85%;
-        }
-
-        .user-message .message-content {
-            background-color: var(--user-msg-bg);
-            align-self: flex-end;
-            border-bottom-right-radius: 0;
-        }
-
-        .model-message .message-content {
-            background-color: var(--model-msg-bg);
-            align-self: flex-start;
-            border-bottom-left-radius: 0;
-        }
-
-        .model-label {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 4px;
-        }
-
-        .chat-input-container {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-        }
-
-        .chat-input {
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            resize: none;
-            min-height: 80px;
-            max-height: 200px;
-            outline: none;
+            max-height: 250px;
+            order: 1;
         }
+        
+        .chat-container {
+            flex: 1;
+            order: 2;
+            max-height: calc(100vh - 250px);
+        }
+    }
 
-        .chat-input:focus {
-            border-color: var(--primary-color);
-        }
+    /* Poprawa widoczności podczas generowania odpowiedzi */
+    #stop-generation-container {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        background-color: var(--bg-color);
+        margin-top: 10px;
+        padding: 10px;
+        border-top: 1px solid var(--border-color);
+    }
 
-        .send-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+    .comparison-container .user-query {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        margin-bottom: 15px;
+    }
+
+    /* Reszta oryginalnych stylów */
+    nav {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: var(--bg-color);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-right: 30px;
+    }
+
+    .nav-section {
+        display: flex;
+        align-items: center;
+        margin-right: 20px;
+    }
+
+    .api-key-input {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 14px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        width: 250px;
+    }
+
+    .api-status {
+        margin-left: 10px;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
+    .theme-toggle {
+        margin-left: auto;
+        cursor: pointer;
+        padding: 5px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+    }
+
+    .sidebar-heading {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    .model-list {
+        list-style: none;
+        flex: 1;
+    }
+
+    .model-item {
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background-color: var(--bg-color);
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.2s;
+    }
+
+    .model-item.selected {
+        border-color: var(--primary-color);
+        background-color: rgba(74, 111, 255, 0.05);
+    }
+    
+    .model-item.free {
+        border-left: 4px solid #4CAF50;
+    }
+
+    .model-name {
+        font-weight: 600;
+        flex: 1;
+        font-size: 12px;
+        white-space: normal;
+        line-height: 1.2;
+        max-height: 2.4em;
+        overflow: visible;
+        padding-right: 6px;
+    }
+
+    .checkbox-container {
+        flex-shrink: 0;
+        margin-left: 4px !important;
+    }
+
+    .history-clear, .history-export {
+        margin-top: 20px;
+        padding: 8px 15px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+
+    .history-clear:hover, .history-export:hover {
+        background-color: rgba(74, 111, 255, 0.1);
+    }
+
+    .message {
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-header {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: var(--primary-color);
+    }
+
+    .message-content {
+        padding: 12px 16px;
+        border-radius: 8px;
+        line-height: 1.5;
+        max-width: 85%;
+    }
+
+    .user-message .message-content {
+        background-color: var(--user-msg-bg);
+        align-self: flex-end;
+        border-bottom-right-radius: 0;
+    }
+
+    .model-message .message-content {
+        background-color: var(--model-msg-bg);
+        align-self: flex-start;
+        border-bottom-left-radius: 0;
+    }
+
+    .chat-input {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-size: 16px;
+        resize: none;
+        min-height: 80px;
+        max-height: 200px;
+        outline: none;
+    }
+
+    .send-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 10px;
+        padding: 10px 20px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
 
         .send-button:hover {
             background-color: var(--secondary-color);
@@ -1045,6 +1080,115 @@
         width: 420px; /* Lekko zwiększona szerokość */
     }
 }
+    /* Style dla ikony informacyjnej */
+    .info-icon {
+        cursor: pointer;
+        margin-left: 8px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    
+    .info-icon:hover {
+        opacity: 1;
+    }
+    
+    /* Style dla modala */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .modal-content {
+        background-color: var(--bg-color);
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80%;
+        overflow-y: auto;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
+    
+    .modal-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        font-size: 24px;
+        color: var(--text-color);
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    
+    .modal-close:hover {
+        opacity: 1;
+    }
+    
+    .modal-header {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+    
+    .modal-details {
+        margin-bottom: 15px;
+    }
+    
+    .modal-detail {
+        margin-bottom: 10px;
+    }
+    
+    .modal-detail strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--secondary-color);
+    }
+	/* Popraw przewijanie w widoku porównawczym */
+.comparison-container {
+    height: calc(100vh - 200px); /* Dostosuj wysokość do całkowitej wysokości ekranu */
+    overflow-y: auto; /* Włącz przewijanie w pionie */
+    overflow-x: auto; /* Włącz przewijanie w poziomie */
+}
+
+.comparison-column {
+    min-width: 300px; /* Minimalna szerokość kolumny */
+    max-width: 500px; /* Maksymalna szerokość kolumny */
+    flex: 1; /* Pozwól na elastyczne rozciąganie */
+    margin-right: 15px; /* Dodaj margines między kolumnami */
+}
+
+.comparison-content {
+    max-height: none; /* Usuń ograniczenie maksymalnej wysokości */
+    overflow-y: auto; /* Włącz przewijanie wewnątrz treści */
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 768px) {
+    .comparison-container {
+        height: auto; /* Automatyczna wysokość na małych ekranach */
+        flex-direction: column; /* Układaj kolumny pionowo */
+        overflow-y: visible;
+    }
+    
+    .comparison-column {
+        min-width: 100%; /* Pełna szerokość na małych ekranach */
+        max-width: 100%;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
     </style>
 </head>
 <body>
@@ -1073,7 +1217,15 @@
             <button id="clear-history" class="history-clear">Wyczyść historię</button>
             <button id="export-history" class="history-export">Eksportuj historię</button>
         </div>
-
+<div id="model-details-modal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div class="modal-header" id="modal-model-name">Model Details</div>
+        <div class="modal-details" id="modal-model-details">
+            <!-- Szczegóły modelu będą dynamicznie wstawiane tutaj -->
+        </div>
+    </div>
+</div>
         <div class="chat-container">
             <!-- View mode toggle buttons -->
             <div class="view-mode-container">
@@ -1679,12 +1831,61 @@ function formatPrice(price) {
     }
     return 'N/A';
 }
-        function renderModels() {
+ function renderModels() {
     modelList.innerHTML = '';
     
     if (models.length === 0) {
         modelList.innerHTML = '<div class="model-item">Brak dostępnych modeli.</div>';
         return;
+    }
+    
+    // Dodaj modal do dokumentu, jeśli jeszcze nie istnieje
+    if (!document.getElementById('model-details-modal')) {
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = `
+        <div id="model-details-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <div class="modal-header" id="modal-model-name">Szczegóły modelu</div>
+                <div class="modal-details" id="modal-model-details">
+                    <!-- Szczegóły modelu będą dynamicznie wstawiane tutaj -->
+                </div>
+            </div>
+        </div>
+        `;
+        document.body.appendChild(modalContainer.firstElementChild);
+        
+        // Inicjalizacja obsługi modala
+        const modal = document.getElementById('model-details-modal');
+        const modalContent = modal.querySelector('.modal-content');
+        const closeButton = modal.querySelector('.modal-close');
+        
+        // Funkcja zamykająca modal
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+        
+        // Zatrzymaj propagację kliknięć wewnątrz treści modala
+        modalContent.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        // Zamykanie modala po kliknięciu poza jego obszarem
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Zamykanie modala przez przycisk zamknięcia
+        closeButton.addEventListener('click', closeModal);
+        
+        // Zamykanie modala klawiszem Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                closeModal();
+            }
+        });
     }
     
     models.forEach(model => {
@@ -1697,32 +1898,7 @@ function formatPrice(price) {
             modelElement.className = `model-item ${isSelected ? 'selected' : ''} ${isFree ? 'free' : ''}`;
             modelElement.dataset.modelId = model.id;
             
-            // Tworzenie zawartości tooltipa ze wszystkimi szczegółami
-            let tooltipContent = `
-                <strong>${model.name || model.id}</strong><br>
-                ${model.description || 'Brak opisu'}<br><br>
-                <strong>Szczegóły:</strong><br>
-                • Context: ${model.context_length || 'N/A'}<br>
-                • Tokens/s: ${model.token_rate?.tokens_per_second?.toFixed(1) || 'N/A'}<br>
-            `;
-            
-            // Dodanie informacji o cenie do tooltipa jeśli dostępne
-            if (model.pricing) {
-                try {
-                    let promptPrice = formatPrice(model.pricing.prompt);
-                    let completionPrice = formatPrice(model.pricing.completion);
-                    
-                    tooltipContent += `• Koszt: ${promptPrice} / ${completionPrice}<br>`;
-                } catch (priceError) {
-                    tooltipContent += `• Koszt: N/A<br>`;
-                }
-            }
-            
-            // Ustawienie tooltipa
-            modelElement.setAttribute('title', tooltipContent);
-            modelElement.setAttribute('data-tooltip', 'true');
-            
-            // Tworzenie uproszczonej zawartości - tylko nazwa modelu
+            // Tworzenie uproszczonej zawartości - nazwa modelu i ikona informacyjna
             let modelHTML = `
                 <div class="model-name">${model.name || model.id}</div>
             `;
@@ -1731,6 +1907,9 @@ function formatPrice(price) {
             if (isFree) {
                 modelHTML += `<div class="free-badge">ZA DARMO</div>`;
             }
+            
+            // Dodanie ikony informacyjnej
+            modelHTML += `<span class="info-icon" data-tooltip="${model.description || 'Brak opisu'}">ℹ️</span>`;
             
             // Dodanie ukrytego checkboxa do zaznaczania
             const checkboxContainer = document.createElement('label');
@@ -1756,9 +1935,16 @@ function formatPrice(price) {
             modelElement.appendChild(checkboxContainer);
             
             modelElement.addEventListener('click', (e) => {
-                if (!e.target.closest('.checkbox-container')) {
+                if (!e.target.closest('.checkbox-container, .info-icon')) {
                     toggleModelSelection(model.id);
                 }
+            });
+            
+            // Dodaj event listener do ikony informacyjnej
+            const infoIcon = modelElement.querySelector('.info-icon');
+            infoIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showModelDetails(model.id);
             });
             
             modelList.appendChild(modelElement);
@@ -1774,9 +1960,147 @@ function formatPrice(price) {
             modelList.appendChild(errorModelElement);
         }
     });
+    
+    // Globalna funkcja do wyświetlania szczegółów modelu
+    window.showModelDetails = (modelId) => {
+        const model = models.find(m => m.id === modelId);
+        if (!model) return;
+        
+        const modal = document.getElementById('model-details-modal');
+        const modelName = document.getElementById('modal-model-name');
+        const modelDetails = document.getElementById('modal-model-details');
+        
+        // Ustaw nazwę modelu
+        modelName.textContent = model.name || modelId;
+        
+        // Przygotuj szczegóły modelu
+        let detailsHTML = '';
+        
+        // Opis
+        if (model.description) {
+            detailsHTML += `
+                <div class="modal-detail">
+                    <strong>Opis</strong>
+                    <p>${model.description}</p>
+                </div>
+            `;
+        }
+        
+        // Kontekst i tokeny
+        detailsHTML += `
+            <div class="modal-detail">
+                <strong>Długość kontekstu</strong>
+                <p>${model.context_length || 'Nieznana'} tokenów</p>
+            </div>
+        `;
+        
+        // Szybkość tokenów
+        if (model.token_rate?.tokens_per_second) {
+            detailsHTML += `
+                <div class="modal-detail">
+                    <strong>Szybkość generowania</strong>
+                    <p>${model.token_rate.tokens_per_second.toFixed(1)} tokenów/sekundę</p>
+                </div>
+            `;
+        }
+        
+        // Cennik
+        if (model.pricing) {
+            try {
+                let promptPrice = formatPrice(model.pricing.prompt);
+                let completionPrice = formatPrice(model.pricing.completion);
+                
+                detailsHTML += `
+                    <div class="modal-detail">
+                        <strong>Cennik</strong>
+                        <p>Input: ${promptPrice} / Output: ${completionPrice} (USD)</p>
+                    </div>
+                `;
+            } catch (priceError) {
+                console.error('Błąd formatowania ceny:', priceError);
+            }
+        }
+        
+        // Dodatkowe opcje jeśli są dostępne
+        if (model.extra_details) {
+            detailsHTML += `
+                <div class="modal-detail">
+                    <strong>Dodatkowe informacje</strong>
+                    <p>${JSON.stringify(model.extra_details)}</p>
+                </div>
+            `;
+        }
+        
+        modelDetails.innerHTML = detailsHTML;
+        
+        // Pokaż modal
+        modal.style.display = 'flex';
+    }
 }
 
+// Formatowanie ceny do wyświetlenia
+function formatPrice(price) {
+    if (price === 0 || price === null) return 'ZA DARMO';
+    if (typeof price === 'number') {
+        return `${price.toFixed(4)}`;
+    }
+    return 'N/A';
+}
 
+// Model może zwrócić błędne ceny, więc dodajmy dodatkowe zabezpieczenie
+function isModelFree(model) {
+    // Check if the model has pricing info and if it's free
+    if (!model || !model.pricing) return false;
+    
+    try {
+        // Some models may use null instead of 0 for free tiers, check both
+        const promptFree = model.pricing.prompt === 0 || model.pricing.prompt === null;
+        const completionFree = model.pricing.completion === 0 || model.pricing.completion === null;
+        
+        return promptFree && completionFree;
+    } catch (e) {
+        console.error('Błąd sprawdzania czy model jest darmowy:', e);
+        return false;
+    }
+}
+function initializeModalHandling() {
+    const modal = document.getElementById('model-details-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    const closeButton = modal.querySelector('.modal-close');
+    
+    // Funkcja zamykająca modal
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+    
+    // Zatrzymaj propagację kliknięć wewnątrz treści modala
+    modalContent.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
+    // Zamykanie modala po kliknięciu poza jego obszarem
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Zamykanie modala przez przycisk zamknięcia
+    closeButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Dodane, aby uniknąć przypadkowego wyzwalania innych zdarzeń
+        closeModal();
+    });
+    
+    // Zamykanie modala klawiszem Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            closeModal();
+        }
+    });
+}
+
+// Wywołaj funkcję inicjalizacji modala
+document.addEventListener('DOMContentLoaded', initializeModalHandling);
         function toggleModelSelection(modelId) {
             const index = selectedModels.indexOf(modelId);
             
