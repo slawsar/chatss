@@ -688,14 +688,6 @@
         flex-direction: column;
     }
     
-    .sidebar {
-        width: 100%;
-        max-height: 200px; /* Zmniejszono z 250px */
-        order: 1;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-    
     .chat-container {
         flex: 1;
         order: 2;
@@ -1277,24 +1269,6 @@ button, .model-item, .file-upload-button, .star, .best-answer-button {
         overflow-y: auto;
     }
     
-    /* Przycisk zwijania/rozwijania sidebaru */
-    .sidebar-toggle {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 8px;
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-bottom: 10px;
-    }
-    
-    .sidebar.collapsed {
-        max-height: 50px;
-        overflow: hidden;
-    }
     
     .model-item {
         padding: 8px;
@@ -1452,6 +1426,150 @@ button, .model-item, .file-upload-button, .star, .best-answer-button {
     
     .message-header {
         font-size: 12px;
+    }
+}
+/* Ukrywanie belki z kluczem API na urządzeniach mobilnych */
+@media (max-width: 768px) {
+    .nav-section {
+        display: none; /* Ukryj domyślnie na urządzeniach mobilnych */
+    }
+    
+    /* Przycisk do pokazywania ustawień API */
+    .api-settings-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        margin-right: 10px;
+        width: 36px;
+        height: 36px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    
+    /* Styl dla wysuwanego panelu ustawień API */
+    .api-settings-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--bg-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px;
+        z-index: 1001;
+        transform: translateY(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .api-settings-panel.visible {
+        transform: translateY(0);
+    }
+    
+    .api-settings-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: var(--text-color);
+        cursor: pointer;
+    }
+}
+
+/* Wysuwany panel boczny na urządzeniach mobilnych */
+@media (max-width: 992px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 85%;
+        max-width: 320px;
+        max-height: 100%;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        overflow-y: auto;
+        margin-top: 60px; /* Zapewnia miejsce na pasek nawigacyjny */
+        padding-bottom: env(safe-area-inset-bottom, 20px); /* Uwzględnia safe area */
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-container {
+        flex-direction: column;
+    }
+    
+    /* Przycisk hamburger menu */
+    .hamburger-menu {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        margin-right: 15px;
+    }
+    
+    .hamburger-menu span {
+        width: 100%;
+        height: 2px;
+        background-color: var(--text-color);
+        transition: all 0.3s linear;
+        position: relative;
+        transform-origin: 1px;
+    }
+    
+    /* Transformacja hamburger menu w X przy otwartym panelu */
+    .hamburger-menu.open span:first-child {
+        transform: rotate(45deg);
+    }
+    
+    .hamburger-menu.open span:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .hamburger-menu.open span:nth-child(3) {
+        transform: rotate(-45deg);
+    }
+    
+    /* Overlay dla tła gdy panel jest otwarty */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+    
+    .overlay.visible {
+        display: block;
+    }
+    
+    /* Popraw widok chat container gdy sidebar jest wysunięty */
+    .chat-container {
+        max-height: none;
+        flex: 1;
+    }
+    
+    /* Usuń poprzedni przycisk zwijania sidebara */
+    .sidebar-toggle {
+        display: none;
     }
 }
     </style>
@@ -3643,49 +3761,11 @@ function getModelCompletionPrice(model) {
 
 // Funkcja do inicjalizacji dodatkowych funkcji mobilnych
 function initMobileFeatures() {
-    createSidebarToggle();
     adjustElementSizes();
     addTouchSupport();
     addOrientationChangeHandler();
 }
 
-// Tworzy przycisk zwijania/rozwijania sidebaru na urządzeniach mobilnych
-function createSidebarToggle() {
-    const sidebar = document.getElementById('sidebar');
-    
-    // Sprawdź, czy jesteśmy na urządzeniu mobilnym
-    if (window.innerWidth <= 768) {
-        // Utwórz przycisk przełączający
-        const toggleButton = document.createElement('button');
-        toggleButton.className = 'sidebar-toggle';
-        toggleButton.id = 'sidebar-toggle';
-        toggleButton.innerHTML = 'Pokaż/ukryj listę modeli';
-        
-        // Dodaj obsługę kliknięcia
-        toggleButton.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            
-            // Zmień tekst przycisku
-            if (sidebar.classList.contains('collapsed')) {
-                toggleButton.innerHTML = 'Pokaż listę modeli';
-            } else {
-                toggleButton.innerHTML = 'Ukryj listę modeli';
-                
-                // Przewiń do sidebaru, aby był widoczny
-                sidebar.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-        
-        // Wstaw przycisk na początku sidebaru
-        sidebar.insertBefore(toggleButton, sidebar.firstChild);
-        
-        // Domyślnie zwiń sidebar na urządzeniach mobilnych
-        if (localStorage.getItem('sidebar_collapsed') !== 'false') {
-            sidebar.classList.add('collapsed');
-            toggleButton.innerHTML = 'Pokaż listę modeli';
-        }
-    }
-}
 
 // Dostosowuje rozmiary elementów UI do ekranu urządzenia
 function adjustElementSizes() {
@@ -3780,6 +3860,130 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     });
 });
+// Kod inicjalizujący mobilne elementy UI
+document.addEventListener('DOMContentLoaded', function() {
+    // Dodaj przycisk hamburger menu do nawigacji
+    const nav = document.querySelector('nav');
+    const hamburgerButton = document.createElement('button');
+    hamburgerButton.className = 'hamburger-menu';
+    hamburgerButton.id = 'hamburger-menu';
+    hamburgerButton.setAttribute('aria-label', 'Menu');
+    
+    for (let i = 0; i < 3; i++) {
+        const span = document.createElement('span');
+        hamburgerButton.appendChild(span);
+    }
+    
+    // Wstaw na początek nawigacji
+    nav.insertBefore(hamburgerButton, nav.firstChild);
+    
+    // Dodaj przycisk ustawień API
+    const apiSettingsButton = document.createElement('button');
+    apiSettingsButton.className = 'api-settings-button';
+    apiSettingsButton.id = 'api-settings-button';
+    apiSettingsButton.textContent = '⚙️';
+    apiSettingsButton.setAttribute('aria-label', 'Ustawienia API');
+    
+    // Wstaw przed przyciskiem zmiany motywu
+    const themeToggle = document.getElementById('theme-toggle');
+    nav.insertBefore(apiSettingsButton, themeToggle);
+    
+    // Utwórz panel ustawień API
+    const apiSettingsPanel = document.createElement('div');
+    apiSettingsPanel.className = 'api-settings-panel';
+    apiSettingsPanel.id = 'api-settings-panel';
+    
+
+    // Dodaj overlay dla tła
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    overlay.id = 'overlay';
+    document.body.appendChild(overlay);
+    
+    // Obsługa zdarzeń dla hamburger menu i sidebara
+    hamburgerButton.addEventListener('click', function() {
+        const sidebar = document.getElementById('sidebar');
+        hamburgerButton.classList.toggle('open');
+        sidebar.classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('visible');
+        
+        // Zapobiegnij przewijaniu strony gdy sidebar jest otwarty
+        if (sidebar.classList.contains('open')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Zamykanie sidebara po kliknięciu w overlay
+    overlay.addEventListener('click', function() {
+        hamburgerButton.classList.remove('open');
+        document.getElementById('sidebar').classList.remove('open');
+        overlay.classList.remove('visible');
+        document.body.style.overflow = '';
+    });
+    
+    // Obsługa zdarzeń dla panelu ustawień API
+    apiSettingsButton.addEventListener('click', function() {
+        const panel = document.getElementById('api-settings-panel');
+        panel.classList.toggle('visible');
+        
+        // Aktualizuj wartość pola wejściowego
+        document.getElementById('mobile-api-key').value = apiKeyInput.value;
+        document.getElementById('mobile-api-status').textContent = apiStatus.textContent;
+    });
+    
+    document.getElementById('api-settings-close').addEventListener('click', function() {
+        document.getElementById('api-settings-panel').classList.remove('visible');
+    });
+    
+    // Synchronizacja między polami API
+    const mobileApiKeyInput = document.getElementById('mobile-api-key');
+    mobileApiKeyInput.addEventListener('blur', function() {
+        apiKeyInput.value = this.value;
+        // Wywołaj ręcznie funkcję obsługi zmiany klucza API
+        if (typeof handleApiKeyChange === 'function') {
+            handleApiKeyChange();
+        }
+    });
+    
+    mobileApiKeyInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            mobileApiKeyInput.blur();
+        }
+    });
+    
+    // Obserwuj zmiany stanu API i aktualizuj mobilny panel
+    const mobileApiStatus = document.getElementById('mobile-api-status');
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                mobileApiStatus.textContent = apiStatus.textContent;
+                mobileApiStatus.style.color = apiStatus.style.color;
+            }
+        });
+    });
+    
+    observer.observe(apiStatus, { characterData: true, childList: true, subtree: true });
+});
+
+// Popraw funkcję renderConversationHistory aby przewijać do dołu po renderowaniu
+const originalRenderConversation = window.renderConversationHistory;
+if (originalRenderConversation) {
+    window.renderConversationHistory = function() {
+        originalRenderConversation.apply(this, arguments);
+        
+        // Dodaj dodatkowe wywołanie przewijania z opóźnieniem
+        // aby upewnić się, że wszystkie elementy są załadowane
+        setTimeout(() => {
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }, 100);
+    };
+}
     </script>
 </body>
 </html>
