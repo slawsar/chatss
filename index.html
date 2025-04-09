@@ -2,7 +2,9 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Chat SS</title>
     <!-- Add Marked.js for Markdown parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
@@ -152,26 +154,6 @@
         padding: 15px 20px;
         border-top: 1px solid var(--border-color);
         background-color: var(--bg-color);
-    }
-
-    /* Responsywność dla mniejszych ekranów */
-    @media (max-width: 992px) {
-        .main-container {
-            flex-direction: column;
-            height: 100vh;
-        }
-        
-        .sidebar {
-            width: 100%;
-            max-height: 250px;
-            order: 1;
-        }
-        
-        .chat-container {
-            flex: 1;
-            order: 2;
-            max-height: calc(100vh - 250px);
-        }
     }
 
     /* Poprawa widoczności podczas generowania odpowiedzi */
@@ -701,44 +683,35 @@
             text-overflow: ellipsis;
         }
 
-        @media (max-width: 992px) {
-            .main-container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                max-height: 250px;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-            }
-
-            nav {
-                flex-wrap: wrap;
-            }
-
-            .nav-section {
-                margin-bottom: 10px;
-            }
-
-            .api-key-input {
-                width: 180px;
-            }
-
-            .theme-toggle {
-                margin-left: 0;
-            }
-            
-            .comparison-container {
-                flex-direction: column;
-            }
-            
-            .comparison-column {
-                width: 100% !important;
-                margin-right: 0 !important;
-                margin-bottom: 15px;
-            }
-        }
+@media (max-width: 992px) {
+    .main-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        max-height: 200px; /* Zmniejszono z 250px */
+        order: 1;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .chat-container {
+        flex: 1;
+        order: 2;
+        max-height: calc(100vh - 200px);
+    }
+    
+    .comparison-container {
+        flex-direction: column;
+    }
+    
+    .comparison-column {
+        width: 100% !important;
+        margin-right: 0 !important;
+        margin-bottom: 15px;
+    }
+}
 
         @media (max-width: 576px) {
             .nav-section {
@@ -1210,6 +1183,277 @@
 .sort-select:hover {
     border-color: var(--primary-color);
 }
+/* Bazowe zmienne dla mobilnych wysokości */
+:root {
+    --vh: 1vh;
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Style dla aktywnych elementów dotykowych */
+.touch-active {
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+/* Poprawka dla iOS vh bug */
+.main-container {
+    height: calc(100 * var(--vh) - 60px);
+}
+
+/* Poprawka dla bezpiecznych obszarów na iPhone X i nowszych */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .chat-input-container {
+        padding-bottom: calc(15px + var(--safe-area-inset-bottom));
+    }
+    
+    nav {
+        padding-top: calc(15px + var(--safe-area-inset-top));
+    }
+}
+
+/* Zapobieganie przekraczaniu szerokości na urządzeniach mobilnych */
+body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Zapobieganie przewijaniu gdy klawiatura jest aktywna na iOS */
+body.keyboard-open {
+    height: 100%;
+    position: fixed;
+    width: 100%;
+}
+
+/* Poprawka dla przycisków - większy obszar dotykowy */
+button, .model-item, .file-upload-button, .star, .best-answer-button {
+    min-height: 36px;  /* Zalecany minimalny rozmiar obszaru dotykowego */
+}
+
+/* Poprawki dla chatInputContainer */
+.chat-input-container {
+    z-index: 100;  /* Upewnij się że jest nad innymi elementami */
+    background-color: var(--bg-color);
+    position: sticky;
+    bottom: 0;
+}
+
+/* Poprawki dla responsywności na urządzeniach mobilnych */
+
+/* Poprawka dla nawigacji */
+@media (max-width: 576px) {
+    nav {
+        flex-direction: column;
+        padding: 10px;
+    }
+    
+    .logo {
+        margin-right: 0;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .nav-section {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+        justify-content: center;
+    }
+    
+    .api-key-input {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .theme-toggle {
+        margin: 10px auto 0;
+    }
+}
+
+/* Poprawka dla sidebaru i listy modeli */
+@media (max-width: 768px) {
+    .sidebar {
+        max-height: 200px; /* Zmniejszono z 250px */
+        overflow-y: auto;
+    }
+    
+    /* Przycisk zwijania/rozwijania sidebaru */
+    .sidebar-toggle {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 8px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+    
+    .sidebar.collapsed {
+        max-height: 50px;
+        overflow: hidden;
+    }
+    
+    .model-item {
+        padding: 8px;
+    }
+    
+    .model-name {
+        font-size: 11px;
+    }
+}
+
+/* Poprawka dla obszaru czatu */
+@media (max-width: 768px) {
+    .chat-input-container {
+        padding: 10px;
+    }
+    
+    .chat-input {
+        min-height: 60px;
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    
+    .message-content {
+        max-width: 95%;
+        padding: 10px 12px;
+    }
+    
+    .send-button {
+        font-size: 14px;
+        padding: 8px 15px;
+    }
+    
+    .file-upload-container {
+        flex-wrap: wrap;
+    }
+    
+    .file-upload-button {
+        margin-bottom: 8px;
+    }
+}
+
+/* Poprawka dla widoku porównawczego */
+@media (max-width: 768px) {
+    .comparison-container {
+        padding: 10px;
+        flex-direction: column;
+        height: auto;
+        overflow-y: visible;
+    }
+    
+    .view-mode-container {
+        padding: 5px;
+    }
+    
+    .comparison-column {
+        width: 100%;
+        min-width: 100%;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .user-query {
+        max-width: 95%;
+    }
+}
+
+/* Poprawka dla obsługi plików */
+@media (max-width: 576px) {
+    .file-list {
+        gap: 5px;
+    }
+    
+    .file-item {
+        width: 60px;
+    }
+    
+    .file-name {
+        font-size: 9px;
+    }
+    
+    .message-file {
+        width: 80px;
+    }
+}
+
+/* Poprawka dla przycisków oceny i najlepszej odpowiedzi */
+@media (max-width: 576px) {
+    .model-response-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .rating-stars {
+        margin-bottom: 5px;
+    }
+    
+    .best-answer-button {
+        align-self: flex-start;
+    }
+    
+    .star {
+        font-size: 16px;
+    }
+}
+
+/* Poprawka dla modala szczegółów modelu */
+@media (max-width: 576px) {
+    .modal-content {
+        width: 95%;
+        max-height: 90%;
+        padding: 15px;
+    }
+    
+    .modal-close {
+        top: 5px;
+        right: 5px;
+    }
+}
+
+/* Poprawka dla checkboxów */
+@media (max-width: 576px) {
+    .checkbox-container {
+        padding-left: 25px;
+    }
+    
+    .checkmark {
+        height: 16px;
+        width: 16px;
+    }
+    
+    .checkbox-container .checkmark:after {
+        left: 5px;
+        top: 2px;
+        width: 4px;
+        height: 8px;
+    }
+}
+
+/* Poprawka dla tooltipów */
+@media (max-width: 768px) {
+    .custom-tooltip {
+        max-width: 80vw;
+    }
+}
+
+/* Dodatkowe usprawnienia dla bardzo małych ekranów */
+@media (max-width: 360px) {
+    .logo {
+        font-size: 1.2rem;
+    }
+    
+    .chat-messages {
+        padding: 10px;
+    }
+    
+    .message-header {
+        font-size: 12px;
+    }
+}
     </style>
 </head>
 <body>
@@ -1420,6 +1664,14 @@ document.getElementById('model-sort').addEventListener('change', function() {
     sortModels(this.value);
 });
 			initTooltips();
+			// Inicjalizuj event listenery dla zmian orientacji
+if ('onorientationchange' in window) {
+    window.addEventListener('orientationchange', function() {
+        setTimeout(() => {
+            renderCurrentView();
+        }, 300);
+    });
+}
         }
 
 function initTooltips() {
@@ -1647,6 +1899,10 @@ function initTooltips() {
             } else {
                 renderComparisonView();
             }
+			// Wywołaj funcję adjustElementSizes, aby dostosować widok do urządzenia mobilnego
+if (typeof adjustElementSizes === 'function') {
+    adjustElementSizes();
+}
         }
 
         function handleApiKeyChange() {
@@ -3381,6 +3637,149 @@ function getModelCompletionPrice(model) {
     const price = parseFloat(model.pricing.completion);
     return isNaN(price) ? Number.MAX_VALUE : price;
 }
+/**
+ * Funkcje do obsługi dodatkowych funkcjonalności mobilnych
+ */
+
+// Funkcja do inicjalizacji dodatkowych funkcji mobilnych
+function initMobileFeatures() {
+    createSidebarToggle();
+    adjustElementSizes();
+    addTouchSupport();
+    addOrientationChangeHandler();
+}
+
+// Tworzy przycisk zwijania/rozwijania sidebaru na urządzeniach mobilnych
+function createSidebarToggle() {
+    const sidebar = document.getElementById('sidebar');
+    
+    // Sprawdź, czy jesteśmy na urządzeniu mobilnym
+    if (window.innerWidth <= 768) {
+        // Utwórz przycisk przełączający
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'sidebar-toggle';
+        toggleButton.id = 'sidebar-toggle';
+        toggleButton.innerHTML = 'Pokaż/ukryj listę modeli';
+        
+        // Dodaj obsługę kliknięcia
+        toggleButton.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            
+            // Zmień tekst przycisku
+            if (sidebar.classList.contains('collapsed')) {
+                toggleButton.innerHTML = 'Pokaż listę modeli';
+            } else {
+                toggleButton.innerHTML = 'Ukryj listę modeli';
+                
+                // Przewiń do sidebaru, aby był widoczny
+                sidebar.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+        
+        // Wstaw przycisk na początku sidebaru
+        sidebar.insertBefore(toggleButton, sidebar.firstChild);
+        
+        // Domyślnie zwiń sidebar na urządzeniach mobilnych
+        if (localStorage.getItem('sidebar_collapsed') !== 'false') {
+            sidebar.classList.add('collapsed');
+            toggleButton.innerHTML = 'Pokaż listę modeli';
+        }
+    }
+}
+
+// Dostosowuje rozmiary elementów UI do ekranu urządzenia
+function adjustElementSizes() {
+    // Dostosuj wysokość ekranu dla iOS Safari (problem z vh)
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    
+    // Dostosuj rozmiar przycisków, aby były łatwiejsze do kliknięcia na ekranach dotykowych
+    if (window.innerWidth <= 576) {
+        const buttons = document.querySelectorAll('button, .file-upload-button, .model-item');
+        buttons.forEach(button => {
+            button.style.minHeight = '42px';
+        });
+    }
+}
+
+// Dodaje lepszą obsługę dotykową dla elementów interaktywnych
+function addTouchSupport() {
+    // Dodaj klasę active przy dotknięciu przycisków (feedback wizualny)
+    const interactiveElements = document.querySelectorAll('button, .model-item, .file-item, .star');
+    
+    interactiveElements.forEach(element => {
+        element.addEventListener('touchstart', function() {
+            this.classList.add('touch-active');
+        }, { passive: true });
+        
+        element.addEventListener('touchend', function() {
+            this.classList.remove('touch-active');
+        }, { passive: true });
+        
+        element.addEventListener('touchcancel', function() {
+            this.classList.remove('touch-active');
+        }, { passive: true });
+    });
+}
+
+// Obsługuje zmiany orientacji ekranu
+function addOrientationChangeHandler() {
+    window.addEventListener('orientationchange', function() {
+        // Przewiń do najnowszej wiadomości po zmianie orientacji
+        setTimeout(() => {
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages && chatMessages.style.display !== 'none') {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Dostosuj zmienną vh po zmianie orientacji
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }, 300);
+    });
+}
+
+// Poprawiona obsługa klawiatury na urządzeniach mobilnych
+function enhanceMobileKeyboard() {
+    const chatInput = document.getElementById('chat-input');
+    
+    if (chatInput) {
+        // Poprawka dla iOS - dodaj padding na dole czatu gdy klawiatura jest widoczna
+        chatInput.addEventListener('focus', function() {
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                document.getElementById('chat-messages').style.paddingBottom = '200px';
+                
+                // Przewiń do dolnej części czatu
+                setTimeout(() => {
+                    const chatMessages = document.getElementById('chat-messages');
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 300);
+            }
+        });
+        
+        chatInput.addEventListener('blur', function() {
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                document.getElementById('chat-messages').style.paddingBottom = '0';
+            }
+        });
+    }
+}
+
+// Inicjalizuj funkcje mobilne po załadowaniu DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Wywołaj funkcje inicjalizujące
+    initMobileFeatures();
+    enhanceMobileKeyboard();
+    
+    // Reinicjalizuj przy zmianie rozmiaru okna
+    window.addEventListener('resize', function() {
+        // Throttle - wykonaj tylko raz na 300ms
+        if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(function() {
+            adjustElementSizes();
+        }, 300);
+    });
+});
     </script>
 </body>
 </html>
