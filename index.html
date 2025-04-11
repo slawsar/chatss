@@ -88,6 +88,17 @@
                         </div>
                     </div>
 
+                    <!-- Nawigacja mobilna -->
+                    <div class="flex md:hidden">
+                        <button id="mobile-settings-button" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <button id="mobile-toggle-theme" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 ml-1">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                    </div>
+
                     <!-- Nawigacja desktopowa -->
                     <nav class="hidden md:flex items-center space-x-4">
                         <button id="toggle-theme" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -290,6 +301,35 @@
         </div>
     </div>
 
+    <!-- Modal informacji o modelu -->
+    <div id="model-info-modal" class="fixed inset-0 z-30 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 id="model-info-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Informacje o modelu</h3>
+                        <button id="close-model-info" class="text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="model-info-content" class="space-y-4">
+                        <!-- Tutaj pojawią się informacje o modelu -->
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex">
+                    <button id="select-model-from-info" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-500 text-base font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto sm:text-sm">
+                        Wybierz model
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Nakładka ładowania -->
     <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl">
@@ -308,13 +348,16 @@
             chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || {},
             currentChatId: localStorage.getItem('currentChatId') || null,
             theme: localStorage.getItem('theme') || 'system',
-            models: []
+            models: [],
+            currentInfoModel: null
         };
 
         // Elementy DOM
         const elements = {
             app: document.getElementById('app'),
             mobileMenuButton: document.getElementById('mobile-menu-button'),
+            mobileSettingsButton: document.getElementById('mobile-settings-button'),
+            mobileToggleTheme: document.getElementById('mobile-toggle-theme'),
             sidebar: document.getElementById('sidebar'),
             mobileSidebarOverlay: document.getElementById('mobile-sidebar-overlay'),
             modelList: document.getElementById('model-list'),
@@ -344,6 +387,11 @@
             compareModal: document.getElementById('compare-modal'),
             closeCompare: document.getElementById('close-compare'),
             compareResults: document.getElementById('compare-results'),
+            modelInfoModal: document.getElementById('model-info-modal'),
+            modelInfoTitle: document.getElementById('model-info-title'),
+            modelInfoContent: document.getElementById('model-info-content'),
+            closeModelInfo: document.getElementById('close-model-info'),
+            selectModelFromInfo: document.getElementById('select-model-from-info'),
             sortModels: document.getElementById('sort-models'),
             modelSearch: document.getElementById('model-search'),
             loadingOverlay: document.getElementById('loading-overlay')
@@ -401,6 +449,7 @@
                                 description: model.description || 'Brak opisu',
                                 pricing: model.pricing || { prompt: '0', completion: '0' },
                                 context_length: model.context_length || 4096,
+                                architecture: model.architecture || {},
                                 free: (parseFloat(model.pricing?.prompt) === 0 && parseFloat(model.pricing?.completion) === 0)
                             }));
                         } else {
@@ -438,57 +487,85 @@
                 {
                     id: 'openai/gpt-3.5-turbo',
                     name: 'GPT-3.5 Turbo',
-                    description: 'Szybki i wydajny model od OpenAI',
+                    description: 'Szybki i wydajny model od OpenAI. Dobry do codziennych zastosowań, obsługi klienta i prostych zadań generacyjnych. Oferuje dobry balans między ceną a wydajnością.',
                     pricing: { prompt: '0.0000015', completion: '0.000002' },
                     context_length: 4096,
+                    architecture: {
+                        input_modalities: ['text'],
+                        output_modalities: ['text']
+                    },
                     free: false
                 },
                 {
                     id: 'openai/gpt-4o',
                     name: 'GPT-4o',
-                    description: 'Najbardziej zaawansowany model od OpenAI',
+                    description: 'Najbardziej zaawansowany model od OpenAI. Wykazuje się zaawansowanym rozumowaniem, wiedzą specjalistyczną i umiejętnościami rozwiązywania problemów. Idealny do złożonych zadań i aplikacji wymagających wysokiej dokładności.',
                     pricing: { prompt: '0.00003', completion: '0.00006' },
                     context_length: 128000,
+                    architecture: {
+                        input_modalities: ['text', 'image'],
+                        output_modalities: ['text']
+                    },
                     free: false
                 },
                 {
                     id: 'anthropic/claude-3.5-sonnet',
                     name: 'Claude 3.5 Sonnet',
-                    description: 'Najnowszy model od Anthropic',
+                    description: 'Najnowszy model od Anthropic. Wyróżnia się zdolnością do prowadzenia przyjaznych i naturalnych konwersacji, przy zachowaniu wysokiej jakości odpowiedzi merytorycznych. Doskonały do długich kontekstów i skomplikowanych tematów.',
                     pricing: { prompt: '0.00001102', completion: '0.00003268' },
                     context_length: 200000,
+                    architecture: {
+                        input_modalities: ['text', 'image'],
+                        output_modalities: ['text']
+                    },
                     free: false
                 },
                 {
                     id: 'google/gemini-pro',
                     name: 'Gemini Pro',
-                    description: 'Zaawansowany model od Google',
+                    description: 'Zaawansowany model od Google. Cechuje się nowoczesną architekturą i wysoką wydajnością przy zachowaniu przystępnej ceny. Dobry do zadań analitycznych i pracy z danymi.',
                     pricing: { prompt: '0.0000005', completion: '0.0000005' },
                     context_length: 32768,
+                    architecture: {
+                        input_modalities: ['text'],
+                        output_modalities: ['text']
+                    },
                     free: false
                 },
                 {
                     id: 'meta-llama/llama-3.1-70b-instruct',
                     name: 'Llama 3.1 70B',
-                    description: 'Duży model od Meta',
+                    description: 'Duży model od Meta o otwartej architekturze. Zapewnia wysoką jakość odpowiedzi przy relatywnie niskich kosztach. Dobrze radzi sobie z zadaniami wymagającymi rozumowania i generowania tekstu.',
                     pricing: { prompt: '0.0000007', completion: '0.0000009' },
                     context_length: 128000,
+                    architecture: {
+                        input_modalities: ['text'],
+                        output_modalities: ['text']
+                    },
                     free: false
                 },
                 {
                     id: 'openrouter/auto',
                     name: 'Auto (Najlepszy model)',
-                    description: 'Automatycznie wybiera najlepszy model dla twojego zadania',
+                    description: 'Automatycznie wybiera najlepszy model dla twojego zadania. System rozpoznaje charakter zapytania i kieruje je do najodpowiedniejszego modelu, optymalizując jakość odpowiedzi przy kontroli kosztów.',
                     pricing: { prompt: '0.00003', completion: '0.00006' },
                     context_length: 128000,
+                    architecture: {
+                        input_modalities: ['text'],
+                        output_modalities: ['text']
+                    },
                     free: false
                 },
                 {
                     id: 'mistralai/mistral-7b-instruct',
                     name: 'Mistral 7B Instruct',
-                    description: 'Instruowany model Mistral 7B',
+                    description: 'Darmowy model instruowany od Mistral AI. Mimo relatywnie małego rozmiaru oferuje dobrą jakość odpowiedzi dla podstawowych zadań. Doskonały do testowania i prototypowania rozwiązań AI.',
                     pricing: { prompt: '0.0', completion: '0.0' },
                     context_length: 32768,
+                    architecture: {
+                        input_modalities: ['text'],
+                        output_modalities: ['text']
+                    },
                     free: true
                 }
             ];
@@ -499,6 +576,8 @@
             // Menu mobilne
             elements.mobileMenuButton.addEventListener('click', toggleMobileSidebar);
             elements.mobileSidebarOverlay.addEventListener('click', toggleMobileSidebar);
+            elements.mobileSettingsButton.addEventListener('click', () => elements.settingsModal.classList.remove('hidden'));
+            elements.mobileToggleTheme.addEventListener('click', toggleTheme);
             
             // Pole wiadomości
             elements.messageInput.addEventListener('input', updateCharacterCount);
@@ -534,6 +613,15 @@
             elements.compareButton.addEventListener('click', showCompareModal);
             elements.closeCompare.addEventListener('click', () => elements.compareModal.classList.add('hidden'));
             
+            // Modal informacji o modelu
+            elements.closeModelInfo.addEventListener('click', () => elements.modelInfoModal.classList.add('hidden'));
+            elements.selectModelFromInfo.addEventListener('click', () => {
+                if (state.currentInfoModel) {
+                    toggleModelSelection(state.currentInfoModel);
+                    elements.modelInfoModal.classList.add('hidden');
+                }
+            });
+            
             // Sortowanie i wyszukiwanie modeli
             elements.sortModels.addEventListener('change', renderModels);
             elements.modelSearch.addEventListener('input', debounce(renderModels, 300));
@@ -545,6 +633,9 @@
                 }
                 if (e.target === elements.compareModal) {
                     elements.compareModal.classList.add('hidden');
+                }
+                if (e.target === elements.modelInfoModal) {
+                    elements.modelInfoModal.classList.add('hidden');
                 }
             });
         }
@@ -624,23 +715,115 @@
                                 <h3 class="font-medium text-gray-800 dark:text-white">${model.name}</h3>
                                 ${model.free ? '<span class="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 text-xs rounded-full">Darmowy</span>' : ''}
                             </div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${model.description}</p>
                             <div class="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
                                 <span class="mr-3"><i class="fas fa-dollar-sign mr-1"></i> ${model.pricing.prompt}/token (prompt)</span>
                                 <span><i class="fas fa-dollar-sign mr-1"></i> ${model.pricing.completion}/token (completion)</span>
                             </div>
                         </div>
-                        <div class="ml-2">
-                            <button class="p-1 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400">
+                        <div class="flex flex-col items-end">
+                            <button class="info-button p-1 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 mb-1" data-model-id="${model.id}">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <button class="select-button p-1 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400">
                                 <i class="fas ${isSelected ? 'fa-check-circle text-primary-500' : 'fa-circle'}"></i>
                             </button>
                         </div>
                     </div>
                 `;
                 
+                // Dodanie nasłuchiwaczy zdarzeń
+                const selectButton = modelElement.querySelector('.select-button');
+                selectButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleModelSelection(model.id);
+                });
+                
+                const infoButton = modelElement.querySelector('.info-button');
+                infoButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showModelInfo(model.id);
+                });
+                
+                // Dodanie nasłuchiwacza dla kliknięcia na cały element (dla wygody)
                 modelElement.addEventListener('click', () => toggleModelSelection(model.id));
+                
                 elements.modelList.appendChild(modelElement);
             });
+        }
+
+        // Pokazanie informacji o modelu
+        function showModelInfo(modelId) {
+            const model = state.models.find(m => m.id === modelId);
+            if (!model) return;
+            
+            state.currentInfoModel = modelId;
+            
+            elements.modelInfoTitle.textContent = model.name;
+            
+            let modalityInfo = '';
+            if (model.architecture && model.architecture.input_modalities) {
+                // Wartości do wyświetlenia
+                const inputModalities = model.architecture.input_modalities || [];
+                const outputModalities = model.architecture.output_modalities || [];
+                
+                const translateModality = (modality) => {
+                    switch(modality) {
+                        case 'text': return 'tekst';
+                        case 'image': return 'obrazy';
+                        case 'audio': return 'audio';
+                        case 'video': return 'wideo';
+                        default: return modality;
+                    }
+                };
+                
+                const inputStr = inputModalities.map(m => translateModality(m)).join(', ');
+                const outputStr = outputModalities.map(m => translateModality(m)).join(', ');
+                
+                modalityInfo = `
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">Obsługiwane wejścia:</span> ${inputStr || 'brak danych'}
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">Obsługiwane wyjścia:</span> ${outputStr || 'brak danych'}
+                    </p>
+                `;
+            }
+            
+            elements.modelInfoContent.innerHTML = `
+                <p class="text-gray-600 dark:text-gray-400">${model.description}</p>
+                
+                <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 class="font-medium text-gray-800 dark:text-white mb-2">Specyfikacja techniczna</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">ID modelu:</span> ${model.id}
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">Limit kontekstu:</span> ${model.context_length.toLocaleString()} tokenów
+                    </p>
+                    ${modalityInfo}
+                </div>
+                
+                <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 class="font-medium text-gray-800 dark:text-white mb-2">Cennik</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">Koszt promptu:</span> $${parseFloat(model.pricing.prompt).toFixed(8)}/token
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">Koszt odpowiedzi:</span> $${parseFloat(model.pricing.completion).toFixed(8)}/token
+                    </p>
+                    <p class="text-sm mt-2 ${model.free ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}">
+                        <i class="fas ${model.free ? 'fa-check-circle' : 'fa-dollar-sign'} mr-1"></i>
+                        ${model.free ? 'Darmowy model' : 'Model płatny'}
+                    </p>
+                </div>
+            `;
+            
+            // Aktualizacja przycisku wyboru
+            const isSelected = state.selectedModels.includes(modelId);
+            elements.selectModelFromInfo.textContent = isSelected ? 'Usuń model' : 'Wybierz model';
+            elements.selectModelFromInfo.className = `w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${isSelected ? 'bg-red-500 hover:bg-red-600' : 'bg-primary-500 hover:bg-primary-600'} text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto sm:text-sm`;
+            
+            elements.modelInfoModal.classList.remove('hidden');
         }
 
         // Przełączanie wyboru modelu
@@ -721,7 +904,12 @@
             e.preventDefault();
             
             const message = elements.messageInput.value.trim();
-            if (!message || state.selectedModels.length === 0) return;
+            if (!message) return;
+            
+            if (state.selectedModels.length === 0) {
+                showToast('Wybierz przynajmniej jeden model AI', 'warning');
+                return;
+            }
             
             // Dodanie wiadomości użytkownika do czatu
             addMessageToChat('user', message, state.currentChatId);
