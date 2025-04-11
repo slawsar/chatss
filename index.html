@@ -69,6 +69,13 @@
             border: 2px dashed #3b82f6 !important;
             background-color: rgba(59, 130, 246, 0.1) !important;
         }
+
+        /* Dodatkowe style dla lepszego wyglądu na urządzeniach mobilnych */
+        @media (max-width: 640px) {
+            .mobile-bottom-padding {
+                padding-bottom: 80px;
+            }
+        }
     </style>
 </head>
 <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -135,6 +142,20 @@
                         </select>
                     </div>
                     
+                    <!-- Filtrowanie modeli -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtruj:</label>
+                        <div class="flex space-x-2 mb-2">
+                            <button id="filter-all" class="px-2 py-1 text-xs bg-primary-500 text-white rounded-md">Wszystkie</button>
+                            <button id="filter-free" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md">Darmowe</button>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="filter-openai" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md">OpenAI</button>
+                            <button id="filter-anthropic" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md">Anthropic</button>
+                            <button id="filter-meta" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md">Meta</button>
+                        </div>
+                    </div>
+                    
                     <!-- Wyszukiwanie modeli -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Szukaj:</label>
@@ -171,7 +192,7 @@
                 </div>
 
                 <!-- Wiadomości czatu -->
-                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 mobile-bottom-padding">
                     <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                         <i class="fas fa-comments text-4xl mb-2"></i>
                         <p>Rozpocznij rozmowę z wybranymi modelami AI</p>
@@ -349,7 +370,8 @@
             currentChatId: localStorage.getItem('currentChatId') || null,
             theme: localStorage.getItem('theme') || 'system',
             models: [],
-            currentInfoModel: null
+            currentInfoModel: null,
+            activeFilter: 'all'
         };
 
         // Elementy DOM
@@ -394,7 +416,12 @@
             selectModelFromInfo: document.getElementById('select-model-from-info'),
             sortModels: document.getElementById('sort-models'),
             modelSearch: document.getElementById('model-search'),
-            loadingOverlay: document.getElementById('loading-overlay')
+            loadingOverlay: document.getElementById('loading-overlay'),
+            filterAll: document.getElementById('filter-all'),
+            filterFree: document.getElementById('filter-free'),
+            filterOpenAI: document.getElementById('filter-openai'),
+            filterAnthropic: document.getElementById('filter-anthropic'),
+            filterMeta: document.getElementById('filter-meta')
         };
 
         // Inicjalizacja aplikacji
@@ -443,15 +470,24 @@
                         
                         if (response.ok) {
                             const data = await response.json();
-                            models = data.data.map(model => ({
-                                id: model.id,
-                                name: model.name,
-                                description: model.description || 'Brak opisu',
-                                pricing: model.pricing || { prompt: '0', completion: '0' },
-                                context_length: model.context_length || 4096,
-                                architecture: model.architecture || {},
-                                free: (parseFloat(model.pricing?.prompt) === 0 && parseFloat(model.pricing?.completion) === 0)
-                            }));
+                            models = data.data.map(model => {
+                                // Wyodrębnij organizację/autora z ID
+                                const idParts = model.id.split('/');
+                                const organization = idParts[0];
+                                
+                                return {
+                                    id: model.id,
+                                    name: model.name,
+                                    description: model.description || 'Brak opisu',
+                                    pricing: model.pricing || { prompt: '0', completion: '0' },
+                                    context_length: model.context_length || 4096,
+                                    architecture: model.architecture || {},
+                                    free: (parseFloat(model.pricing?.prompt) === 0 && parseFloat(model.pricing?.completion) === 0),
+                                    organization: organization
+                                };
+                            });
+                            
+                            console.log(`Pobrano ${models.length} modeli z API OpenRouter`);
                         } else {
                             throw new Error('Nie udało się pobrać modeli z API');
                         }
@@ -494,7 +530,8 @@
                         input_modalities: ['text'],
                         output_modalities: ['text']
                     },
-                    free: false
+                    free: false,
+                    organization: 'openai'
                 },
                 {
                     id: 'openai/gpt-4o',
@@ -506,7 +543,8 @@
                         input_modalities: ['text', 'image'],
                         output_modalities: ['text']
                     },
-                    free: false
+                    free: false,
+                    organization: 'openai'
                 },
                 {
                     id: 'anthropic/claude-3.5-sonnet',
@@ -518,7 +556,8 @@
                         input_modalities: ['text', 'image'],
                         output_modalities: ['text']
                     },
-                    free: false
+                    free: false,
+                    organization: 'anthropic'
                 },
                 {
                     id: 'google/gemini-pro',
@@ -530,7 +569,8 @@
                         input_modalities: ['text'],
                         output_modalities: ['text']
                     },
-                    free: false
+                    free: false,
+                    organization: 'google'
                 },
                 {
                     id: 'meta-llama/llama-3.1-70b-instruct',
@@ -542,7 +582,8 @@
                         input_modalities: ['text'],
                         output_modalities: ['text']
                     },
-                    free: false
+                    free: false,
+                    organization: 'meta-llama'
                 },
                 {
                     id: 'openrouter/auto',
@@ -554,7 +595,8 @@
                         input_modalities: ['text'],
                         output_modalities: ['text']
                     },
-                    free: false
+                    free: false,
+                    organization: 'openrouter'
                 },
                 {
                     id: 'mistralai/mistral-7b-instruct',
@@ -566,9 +608,12 @@
                         input_modalities: ['text'],
                         output_modalities: ['text']
                     },
-                    free: true
+                    free: true,
+                    organization: 'mistralai'
                 }
             ];
+            
+            console.log(`Załadowano ${state.models.length} domyślnych modeli`);
         }
 
         // Konfiguracja nasłuchiwaczy zdarzeń
@@ -626,6 +671,13 @@
             elements.sortModels.addEventListener('change', renderModels);
             elements.modelSearch.addEventListener('input', debounce(renderModels, 300));
             
+            // Filtry modeli
+            elements.filterAll.addEventListener('click', () => setActiveFilter('all'));
+            elements.filterFree.addEventListener('click', () => setActiveFilter('free'));
+            elements.filterOpenAI.addEventListener('click', () => setActiveFilter('openai'));
+            elements.filterAnthropic.addEventListener('click', () => setActiveFilter('anthropic'));
+            elements.filterMeta.addEventListener('click', () => setActiveFilter('meta-llama'));
+            
             // Zamykanie modali kliknięciem na zewnątrz
             window.addEventListener('click', (e) => {
                 if (e.target === elements.settingsModal) {
@@ -638,6 +690,26 @@
                     elements.modelInfoModal.classList.add('hidden');
                 }
             });
+        }
+
+        // Ustawienie aktywnego filtru
+        function setActiveFilter(filter) {
+            state.activeFilter = filter;
+            
+            // Aktualizacja stylu przycisków
+            elements.filterAll.className = getFilterButtonClass(filter === 'all');
+            elements.filterFree.className = getFilterButtonClass(filter === 'free');
+            elements.filterOpenAI.className = getFilterButtonClass(filter === 'openai');
+            elements.filterAnthropic.className = getFilterButtonClass(filter === 'anthropic');
+            elements.filterMeta.className = getFilterButtonClass(filter === 'meta-llama');
+            
+            // Ponowne renderowanie modeli
+            renderModels();
+        }
+
+        // Funkcja pomocnicza do ustawienia klasy przycisku filtra
+        function getFilterButtonClass(isActive) {
+            return `px-2 py-1 text-xs ${isActive ? 'bg-primary-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'} rounded-md`;
         }
 
         // Przełączanie mobilnego paska bocznego
@@ -659,11 +731,23 @@
             const sortValue = elements.sortModels.value;
             const searchTerm = elements.modelSearch.value.toLowerCase();
             
-            // Filtrowanie modeli na podstawie wyszukiwanego hasła
-            let filteredModels = state.models.filter(model => 
-                model.name.toLowerCase().includes(searchTerm) || 
-                model.description.toLowerCase().includes(searchTerm)
-            );
+            // Filtrowanie modeli na podstawie wyszukiwanego hasła i aktywnego filtru
+            let filteredModels = state.models.filter(model => {
+                // Filtrowanie według wyszukiwania
+                const matchesSearch = model.name.toLowerCase().includes(searchTerm) || 
+                                     model.description.toLowerCase().includes(searchTerm);
+                
+                // Filtrowanie według aktywnego filtru
+                let matchesFilter = true;
+                if (state.activeFilter === 'free') {
+                    matchesFilter = model.free;
+                } else if (state.activeFilter !== 'all') {
+                    matchesFilter = model.organization === state.activeFilter || 
+                                   model.id.startsWith(state.activeFilter + '/');
+                }
+                
+                return matchesSearch && matchesFilter;
+            });
             
             // Sortowanie modeli na podstawie wybranej opcji
             filteredModels.sort((a, b) => {
@@ -700,6 +784,17 @@
             // Wyczyszczenie listy modeli
             elements.modelList.innerHTML = '';
             
+            // Jeśli nie ma modeli po filtrowaniu
+            if (filteredModels.length === 0) {
+                elements.modelList.innerHTML = `
+                    <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-search text-2xl mb-2"></i>
+                        <p>Nie znaleziono modeli pasujących do kryteriów</p>
+                    </div>
+                `;
+                return;
+            }
+            
             // Renderowanie każdego modelu
             filteredModels.forEach(model => {
                 const isSelected = state.selectedModels.includes(model.id);
@@ -716,8 +811,8 @@
                                 ${model.free ? '<span class="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 text-xs rounded-full">Darmowy</span>' : ''}
                             </div>
                             <div class="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
-                                <span class="mr-3"><i class="fas fa-dollar-sign mr-1"></i> ${model.pricing.prompt}/token (prompt)</span>
-                                <span><i class="fas fa-dollar-sign mr-1"></i> ${model.pricing.completion}/token (completion)</span>
+                                <span class="mr-3"><i class="fas fa-dollar-sign mr-1"></i> ${formatPrice(model.pricing.prompt)}/token (prompt)</span>
+                                <span><i class="fas fa-dollar-sign mr-1"></i> ${formatPrice(model.pricing.completion)}/token (completion)</span>
                             </div>
                         </div>
                         <div class="flex flex-col items-end">
@@ -751,6 +846,24 @@
             });
         }
 
+        // Formatowanie ceny
+        function formatPrice(price) {
+            // Konwersja ceny na liczbę
+            const priceNum = parseFloat(price);
+            if (isNaN(priceNum) || priceNum === 0) return '0.00';
+            
+            // Formatowanie zależne od wielkości ceny
+            if (priceNum < 0.0000001) {
+                return (priceNum * 1000000000).toFixed(2) + 'n'; // nanocenty
+            } else if (priceNum < 0.0001) {
+                return (priceNum * 1000000).toFixed(2) + 'μ'; // microcenty
+            } else if (priceNum < 0.1) {
+                return (priceNum * 1000).toFixed(2) + 'm'; // milicenty
+            } else {
+                return priceNum.toFixed(2);
+            }
+        }
+
         // Pokazanie informacji o modelu
         function showModelInfo(modelId) {
             const model = state.models.find(m => m.id === modelId);
@@ -760,6 +873,7 @@
             
             elements.modelInfoTitle.textContent = model.name;
             
+            // Przygotowanie informacji o modalnościach
             let modalityInfo = '';
             if (model.architecture && model.architecture.input_modalities) {
                 // Wartości do wyświetlenia
@@ -789,6 +903,17 @@
                 `;
             }
             
+            // Przygotowanie informacji o cenach
+            const promptPrice = parseFloat(model.pricing.prompt);
+            const completionPrice = parseFloat(model.pricing.completion);
+            
+            // Oblicz koszty przykładowych operacji
+            const examplePromptTokens = 1000;
+            const exampleCompletionTokens = 500;
+            const examplePromptCost = (promptPrice * examplePromptTokens).toFixed(6);
+            const exampleCompletionCost = (completionPrice * exampleCompletionTokens).toFixed(6);
+            const exampleTotalCost = (parseFloat(examplePromptCost) + parseFloat(exampleCompletionCost)).toFixed(6);
+            
             elements.modelInfoContent.innerHTML = `
                 <p class="text-gray-600 dark:text-gray-400">${model.description}</p>
                 
@@ -796,6 +921,9 @@
                     <h4 class="font-medium text-gray-800 dark:text-white mb-2">Specyfikacja techniczna</h4>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         <span class="font-medium">ID modelu:</span> ${model.id}
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">Dostawca:</span> ${model.organization.charAt(0).toUpperCase() + model.organization.slice(1)}
                     </p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         <span class="font-medium">Limit kontekstu:</span> ${model.context_length.toLocaleString()} tokenów
@@ -806,16 +934,30 @@
                 <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                     <h4 class="font-medium text-gray-800 dark:text-white mb-2">Cennik</h4>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        <span class="font-medium">Koszt promptu:</span> $${parseFloat(model.pricing.prompt).toFixed(8)}/token
+                        <span class="font-medium">Koszt promptu:</span> $${model.pricing.prompt}/token
                     </p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        <span class="font-medium">Koszt odpowiedzi:</span> $${parseFloat(model.pricing.completion).toFixed(8)}/token
+                        <span class="font-medium">Koszt odpowiedzi:</span> $${model.pricing.completion}/token
                     </p>
                     <p class="text-sm mt-2 ${model.free ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}">
                         <i class="fas ${model.free ? 'fa-check-circle' : 'fa-dollar-sign'} mr-1"></i>
                         ${model.free ? 'Darmowy model' : 'Model płatny'}
                     </p>
                 </div>
+                
+                ${!model.free ? `
+                <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 class="font-medium text-gray-800 dark:text-white mb-2">Przykładowy koszt</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Przykład dla zapytania o długości ${examplePromptTokens} tokenów i odpowiedzi o długości ${exampleCompletionTokens} tokenów:
+                    </p>
+                    <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside mt-1">
+                        <li>Koszt promptu: $${examplePromptCost}</li>
+                        <li>Koszt odpowiedzi: $${exampleCompletionCost}</li>
+                        <li class="font-semibold">Łączny koszt: $${exampleTotalCost}</li>
+                    </ul>
+                </div>
+                ` : ''}
             `;
             
             // Aktualizacja przycisku wyboru
@@ -956,7 +1098,7 @@
             // Przygotowanie historii wiadomości dla kontekstu
             const chatContext = [];
             
-            // Dodaj wcześniejsze wiadomości z obecnego czatu (maksymalnie 10)
+            // Dodaj wcześniejsze wiadomości z obecnego czatu (maksymalnie 20)
             if (state.chatHistory[state.currentChatId]) {
                 const messages = state.chatHistory[state.currentChatId];
                 const recentMessages = messages.slice(-20); // Weź maksymalnie 20 ostatnich wiadomości
@@ -1056,7 +1198,7 @@
                     <div class="${isUser ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white'} px-4 py-2 rounded-lg">
                         ${!isUser && model ? `<div class="text-xs font-medium mb-1 ${isUser ? 'text-primary-100' : 'text-gray-500 dark:text-gray-400'}">${model.name}</div>` : ''}
                         <div class="whitespace-pre-wrap">${escapeHtml(message.content)}</div>
-                        <div class="text-xs mt-1 ${isUser ? 'text-primary-300' : 'text-gray-500 dark:text-gray-400'}">${formatTime(message.timestamp)}</div>
+                        <div class="mt-1 text-xs ${isUser ? 'text-primary-300' : 'text-gray-500 dark:text-gray-400'}">${formatTime(message.timestamp)}</div>
                     </div>
                 </div>
             `;
