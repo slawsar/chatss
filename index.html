@@ -69,13 +69,52 @@
             border: 2px dashed #3b82f6 !important;
             background-color: rgba(59, 130, 246, 0.1) !important;
         }
+/* Style dla zakładek */
+.chat-tab {
+    position: relative;
+    transition: all 0.2s;
+}
 
+.chat-tab:hover .tab-close {
+    display: flex;
+}
+
+.tab-close {
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    background-color: rgba(107, 114, 128, 0.2);
+    color: rgba(75, 85, 99);
+}
+
+.dark .tab-close {
+    background-color: rgba(55, 65, 81, 0.5);
+    color: rgba(209, 213, 219);
+}
+
+.tab-close:hover {
+    background-color: rgba(239, 68, 68, 0.9);
+    color: white;
+}
         /* Dodatkowe style dla lepszego wyglądu na urządzeniach mobilnych */
-        @media (max-width: 640px) {
-            .mobile-bottom-padding {
-                padding-bottom: 80px;
-            }
-        }
+@media (max-width: 640px) {
+    .mobile-bottom-padding {
+        padding-bottom: 80px;
+    }
+    
+    .chat-tabs-container {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
+    }
+}
     </style>
 </head>
 <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -178,21 +217,33 @@
 
             <!-- Główny obszar czatu -->
             <main class="flex-1 flex flex-col overflow-hidden">
-                <!-- Nagłówek czatu z wybranymi modelami -->
-                <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Czat</h2>
-                        <button id="clear-chat" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            <i class="fas fa-trash-alt mr-1"></i> Wyczyść czat
-                        </button>
-                    </div>
-                    <div id="selected-models" class="flex flex-wrap gap-2 mt-2">
-                        <!-- Wybrane modele pojawią się tutaj -->
-                    </div>
-                </div>
+<!-- Nagłówek czatu z wybranymi modelami -->
+<div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+    <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Czat</h2>
+        <div class="flex items-center space-x-2">
+            <button id="clear-chat" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-trash-alt mr-1"></i> Wyczyść czat
+            </button>
+        </div>
+    </div>
+    <div id="selected-models" class="flex flex-wrap gap-2 mt-2">
+        <!-- Wybrane modele pojawią się tutaj -->
+    </div>
+</div>
 
-                <!-- Wiadomości czatu -->
-                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 mobile-bottom-padding">
+<!-- Zakładki czatu -->
+<div class="chat-tabs-container bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 py-2 px-4 flex items-center overflow-x-auto">
+    <div id="chat-tabs" class="flex space-x-2 flex-grow">
+        <!-- Zakładki czatu będą tutaj dodawane -->
+    </div>
+    <button id="new-chat" class="flex items-center justify-center ml-2 px-3 py-1 rounded-md bg-primary-500 hover:bg-primary-600 text-white">
+        <i class="fas fa-plus mr-1"></i> Nowy czat
+    </button>
+</div>
+
+<!-- Wiadomości czatu -->
+<div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 mobile-bottom-padding">
                     <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                         <i class="fas fa-comments text-4xl mb-2"></i>
                         <p>Rozpocznij rozmowę z wybranymi modelami AI</p>
@@ -209,16 +260,11 @@
                             </button>
                         </div>
                     </form>
-                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        <div>
-                            <span id="character-count">0</span>/1000
-                        </div>
-                        <div>
-                            <button type="button" id="new-chat" class="hover:text-gray-700 dark:hover:text-gray-300">
-                                <i class="fas fa-plus mr-1"></i> Nowy czat
-                            </button>
-                        </div>
-                    </div>
+<div class="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+    <div>
+        <span id="character-count">0</span>/1000
+    </div>
+</div>
                 </div>
             </main>
         </div>
@@ -363,16 +409,16 @@
 
     <script>
         // Główny stan aplikacji
-        const state = {
-            apiKey: localStorage.getItem('openRouterApiKey') || '',
-            selectedModels: JSON.parse(localStorage.getItem('selectedModels')) || [],
-            chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || {},
-            currentChatId: localStorage.getItem('currentChatId') || null,
-            theme: localStorage.getItem('theme') || 'system',
-            models: [],
-            currentInfoModel: null,
-            activeFilter: 'all'
-        };
+const state = {
+    apiKey: localStorage.getItem('openRouterApiKey') || '',
+        chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || {},
+    currentChatId: localStorage.getItem('currentChatId') || null,
+    theme: localStorage.getItem('theme') || 'system',
+    models: [],
+    currentInfoModel: null,
+    activeFilter: 'all',
+    chatTabs: JSON.parse(localStorage.getItem('chatTabs')) || [],
+};
 
         // Elementy DOM
         const elements = {
@@ -421,6 +467,7 @@
             filterFree: document.getElementById('filter-free'),
             filterOpenAI: document.getElementById('filter-openai'),
             filterAnthropic: document.getElementById('filter-anthropic'),
+			 chatTabs: document.getElementById('chat-tabs'), 
             filterMeta: document.getElementById('filter-meta')
         };
 
@@ -443,17 +490,45 @@
             // Renderowanie wybranych modeli
             renderSelectedModels();
             
-            // Tworzenie nowego czatu jeżeli nie istnieje
-            if (!state.currentChatId || !state.chatHistory[state.currentChatId]) {
-                createNewChat();
-            } else {
-                loadChat(state.currentChatId);
-            }
-            
+// Inicjalizacja zakładek lub utworzenie nowej zakładki jeżeli brak
+if (state.chatTabs.length === 0) {
+    createNewChat();
+} else {
+    // Załaduj zakładki i przejdź do ostatnio używanej
+    renderChatTabs();
+    
+    if (state.currentChatId && state.chatHistory[state.currentChatId]) {
+        activateTab(state.currentChatId);
+    } else if (state.chatTabs.length > 0) {
+        activateTab(state.chatTabs[0].id);
+    } else {
+        createNewChat();
+    }
+}
             // Pokazanie przycisku porównania jeżeli wybrano wiele modeli
             toggleCompareButton();
         }
-
+// Funkcja do migracji starszych danych
+function migrateOldData() {
+    // Sprawdź czy istnieją globalne wybraneModele z poprzedniej wersji
+    const oldSelectedModels = JSON.parse(localStorage.getItem('selectedModels'));
+    
+    // Migracja danych dla istniejących zakładek
+    state.chatTabs.forEach(tab => {
+        if (!tab.selectedModels) {
+            // Jeśli zakładka nie ma własnej listy wybranych modeli, użyj globalnej
+            tab.selectedModels = oldSelectedModels || [];
+        }
+    });
+    
+    // Zapisz zaktualizowane zakładki
+    saveChatTabs();
+    
+    // Usuń przestarzałe dane
+    if (oldSelectedModels) {
+        localStorage.removeItem('selectedModels');
+    }
+}
         // Funkcja pobierająca modele z OpenRouter API
         async function fetchModels() {
             try {
@@ -772,15 +847,19 @@
             });
             
             // Przeniesienie wybranych modeli na górę
-            filteredModels.sort((a, b) => {
-                const aSelected = state.selectedModels.includes(a.id);
-                const bSelected = state.selectedModels.includes(b.id);
-                
-                if (aSelected && !bSelected) return -1;
-                if (!aSelected && bSelected) return 1;
-                return 0;
-            });
-            
+// Znajdź aktualną zakładkę, aby wiedzieć, które modele są już wybrane
+const currentTab = state.chatTabs.find(tab => tab.id === state.currentChatId);
+const selectedModels = currentTab && currentTab.selectedModels ? currentTab.selectedModels : [];
+
+// Przeniesienie wybranych modeli na górę
+filteredModels.sort((a, b) => {
+    const aSelected = selectedModels.includes(a.id);
+    const bSelected = selectedModels.includes(b.id);
+    
+    if (aSelected && !bSelected) return -1;
+    if (!aSelected && bSelected) return 1;
+    return 0;
+});
             // Wyczyszczenie listy modeli
             elements.modelList.innerHTML = '';
             
@@ -797,34 +876,30 @@
             
             // Renderowanie każdego modelu
             filteredModels.forEach(model => {
-                const isSelected = state.selectedModels.includes(model.id);
+                const isSelected = selectedModels.includes(model.id);
                 
                 const modelElement = document.createElement('div');
                 modelElement.className = `p-3 rounded-md border ${isSelected ? 'border-primary-500 bg-primary-50 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800'} cursor-pointer transition-colors duration-200`;
                 modelElement.dataset.modelId = model.id;
                 
-                modelElement.innerHTML = `
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center">
-                                <h3 class="font-medium text-gray-800 dark:text-white">${model.name}</h3>
-                                ${model.free ? '<span class="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 text-xs rounded-full">Darmowy</span>' : ''}
-                            </div>
-                            <div class="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
-                                <span class="mr-3"><i class="fas fa-dollar-sign mr-1"></i> ${formatPrice(model.pricing.prompt)}/token (prompt)</span>
-                                <span><i class="fas fa-dollar-sign mr-1"></i> ${formatPrice(model.pricing.completion)}/token (completion)</span>
-                            </div>
-                        </div>
-                        <div class="flex flex-col items-end">
-                            <button class="info-button p-1 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 mb-1" data-model-id="${model.id}">
-                                <i class="fas fa-info-circle"></i>
-                            </button>
-                            <button class="select-button p-1 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400">
-                                <i class="fas ${isSelected ? 'fa-check-circle text-primary-500' : 'fa-circle'}"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
+modelElement.innerHTML = `
+    <div class="flex items-start justify-between">
+        <div class="flex-1">
+            <div class="flex items-center">
+                <h3 class="text-sm text-gray-800 dark:text-white">${model.name}</h3>
+                ${model.free ? '<span class="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 text-xs rounded-full">Darmowy</span>' : ''}
+            </div>
+        </div>
+        <div class="flex flex-col items-end">
+            <button class="info-button p-1 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 mb-1" data-model-id="${model.id}">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            <button class="select-button p-1 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400">
+                <i class="fas ${isSelected ? 'fa-check-circle text-primary-500' : 'fa-circle'}"></i>
+            </button>
+        </div>
+    </div>
+`;
                 
                 // Dodanie nasłuchiwaczy zdarzeń
                 const selectButton = modelElement.querySelector('.select-button');
@@ -961,77 +1036,96 @@
             `;
             
             // Aktualizacja przycisku wyboru
-            const isSelected = state.selectedModels.includes(modelId);
-            elements.selectModelFromInfo.textContent = isSelected ? 'Usuń model' : 'Wybierz model';
-            elements.selectModelFromInfo.className = `w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${isSelected ? 'bg-red-500 hover:bg-red-600' : 'bg-primary-500 hover:bg-primary-600'} text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto sm:text-sm`;
-            
+// Aktualizacja przycisku wyboru - sprawdź czy model jest wybrany dla aktualnej zakładki
+const currentTab = state.chatTabs.find(tab => tab.id === state.currentChatId);
+const isSelected = currentTab && currentTab.selectedModels && currentTab.selectedModels.includes(modelId);
+elements.selectModelFromInfo.textContent = isSelected ? 'Usuń model' : 'Wybierz model';
+elements.selectModelFromInfo.className = `w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${isSelected ? 'bg-red-500 hover:bg-red-600' : 'bg-primary-500 hover:bg-primary-600'} text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto sm:text-sm`;
             elements.modelInfoModal.classList.remove('hidden');
         }
 
         // Przełączanie wyboru modelu
-        function toggleModelSelection(modelId) {
-            const index = state.selectedModels.indexOf(modelId);
-            
-            if (index === -1) {
-                state.selectedModels.push(modelId);
-            } else {
-                state.selectedModels.splice(index, 1);
-            }
-            
-            // Zapisanie do localStorage
-            localStorage.setItem('selectedModels', JSON.stringify(state.selectedModels));
-            
-            // Ponowne renderowanie modeli i wybranych modeli
-            renderModels();
-            renderSelectedModels();
-            
-            // Pokazanie/ukrycie przycisku porównania
-            toggleCompareButton();
-        }
+function toggleModelSelection(modelId) {
+    // Znajdź aktualną zakładkę
+    const currentTab = state.chatTabs.find(tab => tab.id === state.currentChatId);
+    if (!currentTab) return;
+    
+    // Jeśli zakładka nie ma jeszcze tablicy wybranych modeli, zainicjuj ją
+    if (!currentTab.selectedModels) {
+        currentTab.selectedModels = [];
+    }
+    
+    const index = currentTab.selectedModels.indexOf(modelId);
+    
+    if (index === -1) {
+        currentTab.selectedModels.push(modelId);
+    } else {
+        currentTab.selectedModels.splice(index, 1);
+    }
+    
+    // Zapisanie do localStorage
+    saveChatTabs();
+    
+    // Ponowne renderowanie modeli i wybranych modeli
+    renderModels();
+    renderSelectedModels();
+    
+    // Pokazanie/ukrycie przycisku porównania
+    toggleCompareButton();
+}
 
         // Renderowanie wybranych modeli
-        function renderSelectedModels() {
-            elements.selectedModelsContainer.innerHTML = '';
-            
-            if (state.selectedModels.length === 0) {
-                const noModels = document.createElement('div');
-                noModels.className = 'text-sm text-gray-500 dark:text-gray-400 italic';
-                noModels.textContent = 'Brak wybranych modeli. Wybierz modele z paska bocznego.';
-                elements.selectedModelsContainer.appendChild(noModels);
-                return;
-            }
-            
-            state.selectedModels.forEach(modelId => {
-                const model = state.models.find(m => m.id === modelId);
-                if (!model) return;
-                
-                const modelElement = document.createElement('div');
-                modelElement.className = 'flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm';
-                modelElement.innerHTML = `
-                    <span class="font-medium text-gray-800 dark:text-white mr-2">${model.name}</span>
-                    <button class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" data-model-id="${model.id}">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                `;
-                
-                const removeButton = modelElement.querySelector('button');
-                removeButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleModelSelection(model.id);
-                });
-                
-                elements.selectedModelsContainer.appendChild(modelElement);
-            });
-        }
+function renderSelectedModels() {
+    elements.selectedModelsContainer.innerHTML = '';
+    
+    // Znajdź aktualną zakładkę
+    const currentTab = state.chatTabs.find(tab => tab.id === state.currentChatId);
+    if (!currentTab || !currentTab.selectedModels || currentTab.selectedModels.length === 0) {
+        const noModels = document.createElement('div');
+        noModels.className = 'text-sm text-gray-500 dark:text-gray-400 italic';
+        noModels.textContent = 'Brak wybranych modeli. Wybierz modele z paska bocznego.';
+        elements.selectedModelsContainer.appendChild(noModels);
+        return;
+    }
+    
+    currentTab.selectedModels.forEach(modelId => {
+        const model = state.models.find(m => m.id === modelId);
+        if (!model) return;
+        
+        const modelElement = document.createElement('div');
+        modelElement.className = 'flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm';
+        modelElement.innerHTML = `
+            <span class="font-medium text-gray-800 dark:text-white mr-2">${model.name}</span>
+            <button class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" data-model-id="${model.id}">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        `;
+        
+        const removeButton = modelElement.querySelector('button');
+        removeButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleModelSelection(model.id);
+        });
+        
+        elements.selectedModelsContainer.appendChild(modelElement);
+    });
+}
 
         // Przełączanie widoczności przycisku porównania
-        function toggleCompareButton() {
-            if (state.selectedModels.length > 1) {
-                elements.compareButton.classList.remove('hidden');
-            } else {
-                elements.compareButton.classList.add('hidden');
-            }
-        }
+function toggleCompareButton() {
+    // Znajdź aktualną zakładkę
+    const currentTab = state.chatTabs.find(tab => tab.id === state.currentChatId);
+    if (!currentTab || !currentTab.selectedModels) {
+        elements.compareButton.classList.add('hidden');
+        return;
+    }
+    
+    if (currentTab.selectedModels.length > 1) {
+        elements.compareButton.classList.remove('hidden');
+    } else {
+        elements.compareButton.classList.add('hidden');
+    }
+}
 
         // Obsługa klawiszy w polu wiadomości
         function handleMessageInputKeydown(e) {
@@ -1048,33 +1142,37 @@
             const message = elements.messageInput.value.trim();
             if (!message) return;
             
-            if (state.selectedModels.length === 0) {
-                showToast('Wybierz przynajmniej jeden model AI', 'warning');
-                return;
-            }
-            
-            // Dodanie wiadomości użytkownika do czatu
-            addMessageToChat('user', message, state.currentChatId);
-            
-            // Wyczyszczenie pola wprowadzania
-            elements.messageInput.value = '';
-            updateCharacterCount();
-            
-            // Pokazanie nakładki ładowania
-            elements.loadingOverlay.classList.remove('hidden');
-            
-            try {
-                // Wysłanie wiadomości do każdego wybranego modelu
-                const responses = await Promise.all(
-                    state.selectedModels.map(modelId => sendToOpenRouter(modelId, message))
-                );
+            // Znajdź aktualną zakładkę
+const currentTab = state.chatTabs.find(tab => tab.id === state.currentChatId);
+if (!currentTab || !currentTab.selectedModels || currentTab.selectedModels.length === 0) {
+    showToast('Wybierz przynajmniej jeden model AI dla tego czatu', 'warning');
+    return;
+}
+
+// Dodanie wiadomości użytkownika do czatu
+addMessageToChat('user', message, state.currentChatId);
+
+// Wyczyszczenie pola wprowadzania
+elements.messageInput.value = '';
+updateCharacterCount();
+
+// Pokazanie nakładki ładowania
+elements.loadingOverlay.classList.remove('hidden');
+
+try {
+    // Wysłanie wiadomości do każdego wybranego modelu dla aktualnego czatu
+    const responses = await Promise.all(
+        currentTab.selectedModels.map(modelId => sendToOpenRouter(modelId, message))
+    );
                 
                 // Dodanie odpowiedzi do czatu
-                responses.forEach((response, index) => {
-                    if (response && response.message) {
-                        addMessageToChat('assistant', response.message, state.currentChatId, state.selectedModels[index]);
-                    }
-                });
+// Dodanie odpowiedzi do czatu
+responses.forEach((response, index) => {
+    if (response && response.message) {
+        // Używamy currentTab.selectedModels[index] zamiast state.selectedModels[index]
+        addMessageToChat('assistant', response.message, state.currentChatId, currentTab.selectedModels[index]);
+    }
+});
                 
                 // Pokazanie przycisku porównania jeśli jest wiele odpowiedzi
                 if (responses.length > 1) {
@@ -1090,71 +1188,93 @@
         }
 
         // Wysyłanie wiadomości do API OpenRouter
-        async function sendToOpenRouter(modelId, message) {
-            if (!state.apiKey) {
-                throw new Error('Klucz API nie jest ustawiony');
-            }
-            
-            // Przygotowanie historii wiadomości dla kontekstu
-            const chatContext = [];
-            
-            // Dodaj wcześniejsze wiadomości z obecnego czatu (maksymalnie 20)
-            if (state.chatHistory[state.currentChatId]) {
-                const messages = state.chatHistory[state.currentChatId];
-                const recentMessages = messages.slice(-20); // Weź maksymalnie 20 ostatnich wiadomości
-                
-                recentMessages.forEach(msg => {
-                    if (msg.role === 'user' || (msg.role === 'assistant' && msg.modelId === modelId)) {
-                        chatContext.push({
-                            role: msg.role,
-                            content: msg.content
-                        });
-                    }
+// Wysyłanie wiadomości do API OpenRouter
+async function sendToOpenRouter(modelId, message) {
+    if (!state.apiKey) {
+        throw new Error('Klucz API nie jest ustawiony');
+    }
+    
+    // Przygotowanie historii wiadomości dla kontekstu
+    const chatContext = [];
+    
+    // Dodaj wcześniejsze wiadomości z obecnego czatu (maksymalnie 20)
+    if (state.chatHistory[state.currentChatId]) {
+        const messages = state.chatHistory[state.currentChatId];
+        const recentMessages = messages.slice(-20); // Weź maksymalnie 20 ostatnich wiadomości
+        
+        recentMessages.forEach(msg => {
+            if (msg.role === 'user' || (msg.role === 'assistant' && msg.modelId === modelId)) {
+                chatContext.push({
+                    role: msg.role,
+                    content: msg.content
                 });
             }
-            
-            // Dodaj bieżącą wiadomość
-            chatContext.push({
-                role: 'user',
-                content: message
-            });
+        });
+    }
+    
+    // Dodaj bieżącą wiadomość
+    chatContext.push({
+        role: 'user',
+        content: message
+    });
+    
+    try {
+        console.log(`Wysyłanie zapytania do modelu ${modelId} z kontekstem:`, chatContext);
+        
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${state.apiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': window.location.href,
+                'X-Title': 'Chat SS'
+            },
+            body: JSON.stringify({
+                model: modelId,
+                messages: chatContext,
+                stream: false, // Wyłącz streaming dla uproszczenia
+                temperature: 0.7,
+                max_tokens: 2000
+            })
+        });
+        
+        // Sprawdź, czy odpowiedź jest prawidłowa
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = `Status HTTP: ${response.status}`;
             
             try {
-                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${state.apiKey}`,
-                        'Content-Type': 'application/json',
-                        'HTTP-Referer': window.location.href,
-                        'X-Title': 'Chat SS'
-                    },
-                    body: JSON.stringify({
-                        model: modelId,
-                        messages: chatContext,
-                        stream: false, // Wyłącz streaming dla uproszczenia
-                        temperature: 0.7,
-                        max_tokens: 2000
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Błąd API: ${errorData.error?.message || response.statusText}`);
-                }
-                
-                const data = await response.json();
-                return {
-                    modelId,
-                    message: data.choices[0].message.content
-                };
-            } catch (error) {
-                console.error(`Błąd wysyłania do modelu ${modelId}:`, error);
-                return {
-                    modelId,
-                    message: `Błąd: ${error.message}`
-                };
+                // Próba parsowania JSON z błędem
+                const errorData = JSON.parse(errorText);
+                errorMessage = `Błąd API: ${errorData.error?.message || errorData.error || errorData.message || response.statusText}`;
+                console.error(`Szczegóły błędu API dla ${modelId}:`, errorData);
+            } catch {
+                // Jeśli odpowiedź nie jest JSON
+                errorMessage = `Błąd API: ${errorText || response.statusText}`;
             }
+            
+            throw new Error(errorMessage);
         }
+        
+        const data = await response.json();
+        console.log(`Odpowiedź z modelu ${modelId}:`, data);
+        
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new Error(`Nieprawidłowa struktura odpowiedzi z API dla modelu ${modelId}`);
+        }
+        
+        return {
+            modelId,
+            message: data.choices[0].message.content
+        };
+    } catch (error) {
+        console.error(`Błąd wysyłania do modelu ${modelId}:`, error);
+        return {
+            modelId,
+            message: `Błąd: ${error.message}`
+        };
+    }
+}
 
         // Dodanie wiadomości do czatu
         function addMessageToChat(role, content, chatId, modelId = null) {
@@ -1180,6 +1300,16 @@
             setTimeout(() => {
                 elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
             }, 100);
+			// Aktualizacja tytułu zakładki jeśli to pierwsza wiadomość użytkownika
+if (role === 'user') {
+    const tab = state.chatTabs.find(tab => tab.id === chatId);
+    if (tab && (!tab.title || tab.title === 'Nowy czat')) {
+        const truncatedContent = content.length > 20 ? content.substring(0, 20) + '...' : content;
+        tab.title = truncatedContent;
+        saveChatTabs();
+        renderChatTabs();
+    }
+}
         }
 
         // Renderowanie wiadomości w czacie
@@ -1205,24 +1335,144 @@
             
             elements.chatMessages.appendChild(messageElement);
         }
+// Tworzenie nowego czatu
+function createNewChat() {
+    const chatId = `chat_${Date.now()}`;
+    state.currentChatId = chatId;
+    
+    // Inicjalizacja pustej historii czatu
+    if (!state.chatHistory[chatId]) {
+        state.chatHistory[chatId] = [];
+    }
+    
+    // Zapisanie do localStorage
+    saveChatHistory();
+    localStorage.setItem('currentChatId', chatId);
+    
+    // Dodanie nowej zakładki
+state.chatTabs.push({
+    id: chatId,
+    title: 'Nowy czat',
+    timestamp: new Date().toISOString(),
+    selectedModels: []  // Dodane pole dla wybranych modeli tego czatu
+});
+    
+    // Zapisanie zakładek
+    saveChatTabs();
+    
+    // Renderowanie zakładek
+    renderChatTabs();
+    
+    // Aktywacja nowej zakładki
+    activateTab(chatId);
+	
+}
+// Zapisanie zakładek czatu
+function saveChatTabs() {
+    localStorage.setItem('chatTabs', JSON.stringify(state.chatTabs));
+}
 
-        // Tworzenie nowego czatu
-        function createNewChat() {
-            const chatId = `chat_${Date.now()}`;
-            state.currentChatId = chatId;
-            state.chatHistory[chatId] = [];
-            saveChatHistory();
-            localStorage.setItem('currentChatId', chatId);
+// Renderowanie zakładek czatu
+function renderChatTabs() {
+    elements.chatTabs.innerHTML = '';
+    
+    if (state.chatTabs.length === 0) {
+        return;
+    }
+    
+    state.chatTabs.forEach(tab => {
+        const isActive = tab.id === state.currentChatId;
+        
+        const tabElement = document.createElement('div');
+        tabElement.className = `chat-tab px-4 py-2 rounded-md cursor-pointer flex items-center ${
+            isActive 
+            ? 'bg-primary-500 text-white' 
+            : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
+        }`;
+        tabElement.dataset.chatId = tab.id;
+        
+        tabElement.innerHTML = `
+            <i class="fas fa-comment-alt mr-2 text-sm"></i>
+            <span class="truncate max-w-xs">${tab.title || 'Nowy czat'}</span>
+            <span class="tab-close ml-2" data-chat-id="${tab.id}">
+                <i class="fas fa-times"></i>
+            </span>
+        `;
+        
+        elements.chatTabs.appendChild(tabElement);
+    });
+}
+
+// Aktywacja wybranej zakładki
+function activateTab(chatId) {
+    // Aktualizacja aktualnego czatu
+    state.currentChatId = chatId;
+    localStorage.setItem('currentChatId', chatId);
+    
+    // Aktualizacja wyglądu zakładek
+    renderChatTabs();
+    
+    // Wyczyszczenie wiadomości czatu
+    elements.chatMessages.innerHTML = '';
+    
+    // Jeżeli historia czatu istnieje, załaduj wiadomości
+    if (state.chatHistory[chatId] && state.chatHistory[chatId].length > 0) {
+        // Renderowanie wszystkich wiadomości
+        state.chatHistory[chatId].forEach(message => {
+            renderMessage(message);
+        });
+        
+        // Przewijanie na dół
+        setTimeout(() => {
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }, 100);
+    } else {
+        // Brak wiadomości w czacie
+        elements.chatMessages.innerHTML = `
+            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                <i class="fas fa-comments text-4xl mb-2"></i>
+                <p>Rozpocznij rozmowę z wybranymi modelami AI</p>
+            </div>
+        `;
+    }
+	// Aktualizacja listy wybranych modeli dla aktywnej zakładki
+    renderSelectedModels();
+    
+    // Aktualizacja przycisku porównania
+    toggleCompareButton();
+}
+
+// Zamykanie zakładki czatu
+function closeTab(chatId) {
+    // Sprawdzenie czy to ostatnia zakładka
+    if (state.chatTabs.length <= 1) {
+        showToast('Nie można zamknąć ostatniej zakładki', 'warning');
+        return;
+    }
+    
+    // Potwierdzenie zamknięcia
+    if (confirm('Czy na pewno chcesz zamknąć tę zakładkę? Historia czatu zostanie zachowana.')) {
+        // Znalezienie indeksu zakładki do usunięcia
+        const tabIndex = state.chatTabs.findIndex(tab => tab.id === chatId);
+        
+        if (tabIndex !== -1) {
+            // Usunięcie zakładki
+            state.chatTabs.splice(tabIndex, 1);
+            saveChatTabs();
             
-            // Wyczyszczenie wiadomości czatu
-            elements.chatMessages.innerHTML = `
-                <div class="text-center text-gray-500 dark:text-gray-400 py-8">
-                    <i class="fas fa-comments text-4xl mb-2"></i>
-                    <p>Rozpocznij rozmowę z wybranymi modelami AI</p>
-                </div>
-            `;
+            // Jeżeli to była aktywna zakładka, aktywuj inną
+            if (chatId === state.currentChatId) {
+                // Wybierz następną zakładkę lub poprzednią jeśli to była ostatnia
+                const newTabIndex = tabIndex >= state.chatTabs.length ? tabIndex - 1 : tabIndex;
+                const newChatId = state.chatTabs[newTabIndex].id;
+                activateTab(newChatId);
+            } else {
+                // Po prostu odśwież zakładki jeśli to nie była aktywna zakładka
+                renderChatTabs();
+            }
         }
-
+    }
+}
         // Wczytanie czatu z historii
         function loadChat(chatId) {
             if (!state.chatHistory[chatId]) return;
@@ -1262,6 +1512,13 @@
                     </div>
                 `;
             }
+			// Zresetowanie tytułu zakładki
+const tabIndex = state.chatTabs.findIndex(tab => tab.id === state.currentChatId);
+if (tabIndex !== -1) {
+    state.chatTabs[tabIndex].title = 'Nowy czat';
+    saveChatTabs();
+    renderChatTabs();
+}
         }
 
         // Zapisanie historii czatu do localStorage
@@ -1302,37 +1559,71 @@
         }
 
         // Weryfikacja klucza API
-        async function validateApiKey() {
-            const apiKey = elements.apiKeyInput.value.trim();
-            
-            if (!apiKey) {
-                showToast('Proszę najpierw wprowadzić klucz API', 'error');
-                return;
+// Weryfikacja klucza API
+async function validateApiKey() {
+    const apiKey = elements.apiKeyInput.value.trim();
+    
+    if (!apiKey) {
+        showToast('Proszę najpierw wprowadzić klucz API', 'error');
+        return;
+    }
+    
+    try {
+        elements.loadingOverlay.classList.remove('hidden');
+        
+        const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`
             }
-            
-            try {
-                elements.loadingOverlay.classList.remove('hidden');
-                
-                const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Weryfikacja klucza API nie powiodła się (status ${response.status})`);
-                }
-                
-                const data = await response.json();
-                showToast(`Klucz API jest ważny. Pozostałe kredyty: ${data.data.limit_remaining || 'Nieznane'}`, 'success');
-            } catch (error) {
-                console.error('Błąd weryfikacji klucza API:', error);
-                showToast(`Błąd: ${error.message}`, 'error');
-            } finally {
-                elements.loadingOverlay.classList.add('hidden');
-            }
+        });
+        
+        // Pobierz tekst odpowiedzi przed sprawdzeniem statusu
+        const responseText = await response.text();
+        let responseData;
+        
+        try {
+            // Próba parsowania odpowiedzi jako JSON
+            responseData = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Błąd parsowania JSON z odpowiedzi:', e);
+            throw new Error(`Nieoczekiwana odpowiedź od API: ${responseText.substring(0, 100)}...`);
         }
+        
+        if (!response.ok) {
+            let errorMessage = `Weryfikacja klucza API nie powiodła się (status ${response.status})`;
+            if (responseData && responseData.error) {
+                errorMessage += `: ${responseData.error.message || JSON.stringify(responseData.error)}`;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        // Wyświetl szczegóły klucza API
+        console.log('Dane klucza API:', responseData);
+        
+        if (responseData && responseData.data) {
+            const { usage, limit, is_free_tier } = responseData.data;
+            const remainingCredits = limit !== null ? (limit - usage).toFixed(2) : 'Nieograniczone';
+            const accountType = is_free_tier ? 'darmowe' : 'płatne';
+            
+            showToast(`Klucz API jest ważny. Pozostałe kredyty: ${remainingCredits}. Konto: ${accountType}`, 'success');
+            
+            // Automatyczne zapisanie klucza, jeśli jest prawidłowy
+            state.apiKey = apiKey;
+            localStorage.setItem('openRouterApiKey', apiKey);
+            
+            // Ponowne pobranie modeli
+            fetchModels();
+        } else {
+            showToast(`Klucz API jest ważny, ale nie udało się odczytać szczegółów konta.`, 'warning');
+        }
+    } catch (error) {
+        console.error('Błąd weryfikacji klucza API:', error);
+        showToast(`Błąd: ${error.message}`, 'error');
+    } finally {
+        elements.loadingOverlay.classList.add('hidden');
+    }
+}
 
         // Zastosowanie motywu
         function applyTheme(theme) {
@@ -1370,60 +1661,70 @@
         }
 
         // Eksport historii czatu
-        function exportChatHistory() {
-            if (Object.keys(state.chatHistory).length === 0) {
-                showToast('Brak historii czatu do eksportu', 'warning');
-                return;
-            }
-            
-            const dataStr = JSON.stringify(state.chatHistory, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `chat-ss-${new Date().toISOString().slice(0, 10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showToast('Historia czatu wyeksportowana pomyślnie');
-        }
+function exportChatHistory() {
+    if (Object.keys(state.chatHistory).length === 0) {
+        showToast('Brak historii czatu do eksportu', 'warning');
+        return;
+    }
+    
+    const exportData = {
+        chatHistory: state.chatHistory,
+        chatTabs: state.chatTabs
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `chat-ss-${new Date().toISOString().slice(0, 10)}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    showToast('Historia czatu wyeksportowana pomyślnie');
+}
 
         // Import historii czatu
         function importChatHistory() {
-            const file = elements.chatImportFile.files[0];
-            if (!file) return;
+    const file = elements.chatImportFile.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const imported = JSON.parse(e.target.result);
             
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const importedHistory = JSON.parse(e.target.result);
-                    if (typeof importedHistory !== 'object' || importedHistory === null) {
-                        throw new Error('Nieprawidłowy format pliku');
-                    }
-                    
-                    // Połączenie z istniejącą historią
-                    state.chatHistory = { ...state.chatHistory, ...importedHistory };
-                    saveChatHistory();
-                    
-                    showToast('Historia czatu zaimportowana pomyślnie');
-                    
-                    // Jeśli aktualnie wybrany czat nie istnieje, utwórz nowy
-                    if (!state.currentChatId || !state.chatHistory[state.currentChatId]) {
-                        createNewChat();
-                    } else {
-                        loadChat(state.currentChatId);
-                    }
-                } catch (error) {
-                    console.error('Błąd importu historii czatu:', error);
-                    showToast('Błąd importu historii czatu', 'error');
-                }
-            };
-            reader.readAsText(file);
+            if (imported.chatHistory) {
+                // Połączenie z istniejącą historią
+                state.chatHistory = { ...state.chatHistory, ...imported.chatHistory };
+                saveChatHistory();
+            }
             
-            // Resetowanie pola wejściowego pliku
-            elements.chatImportFile.value = '';
+            if (imported.chatTabs) {
+                state.chatTabs = imported.chatTabs;
+                saveChatTabs();
+                renderChatTabs();
+            }
+            
+            showToast('Historia czatu zaimportowana pomyślnie');
+            
+            // Jeśli aktualnie wybrany czat nie istnieje, utwórz nowy
+            if (!state.currentChatId || !state.chatHistory[state.currentChatId]) {
+                createNewChat();
+            } else {
+                activateTab(state.currentChatId);
+            }
+        } catch (error) {
+            console.error('Błąd importu historii czatu:', error);
+            showToast('Błąd importu historii czatu', 'error');
         }
+    };
+    reader.readAsText(file);
+    
+    // Resetowanie pola wejściowego pliku
+    elements.chatImportFile.value = '';
+}
 
         // Pokazanie modalu porównywania
         function showCompareModal() {
@@ -1509,22 +1810,23 @@
             }, 3000);
         }
 
-        // Funkcja pomocnicza do ucieczki HTML
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;")
-                .replace(/\n/g, '<br>');
-        }
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/\n/g, '<br>');
+}
 
         // Funkcja pomocnicza do formatowania czasu
-        function formatTime(isoString) {
-            const date = new Date(isoString);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
+function formatTime(isoString) {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 
         // Funkcja pomocnicza do opóźnienia wykonania
         function debounce(func, wait) {
@@ -1534,7 +1836,21 @@
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
-
+// Nasłuchiwacze zakładek: delegowany event listener dla dynamicznych elementów
+document.addEventListener('click', function(event) {
+    // Sprawdzenie, czy kliknięcie było na przycisku zamykania zakładki
+    const closeButton = event.target.closest('.tab-close');
+    if (closeButton && closeButton.dataset.chatId) {
+        event.stopPropagation();
+        closeTab(closeButton.dataset.chatId);
+    }
+    
+    // Sprawdzenie, czy kliknięcie było na zakładce
+    const tabElement = event.target.closest('.chat-tab');
+    if (tabElement && tabElement.dataset.chatId && !event.target.closest('.tab-close')) {
+        activateTab(tabElement.dataset.chatId);
+    }
+});
         // Inicjalizacja aplikacji po załadowaniu DOM
         document.addEventListener('DOMContentLoaded', init);
     </script>
