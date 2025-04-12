@@ -1726,63 +1726,67 @@ function exportChatHistory() {
     elements.chatImportFile.value = '';
 }
 
-        // Pokazanie modalu porównywania
-        function showCompareModal() {
-            if (!state.currentChatId || state.chatHistory[state.currentChatId].length === 0) {
-                showToast('Brak wiadomości do porównania', 'warning');
-                return;
-            }
-            
-            // Pobranie ostatniej wiadomości użytkownika i wszystkich odpowiedzi asystenta
-            const chat = state.chatHistory[state.currentChatId];
-            const lastUserMessage = [...chat].reverse().find(m => m.role === 'user');
-            
-            if (!lastUserMessage) {
-                showToast('Nie znaleziono wiadomości użytkownika do porównania', 'warning');
-                return;
-            }
-            
-            const assistantResponses = chat.filter(m => 
-                m.role === 'assistant' && 
-                m.timestamp > lastUserMessage.timestamp
-            );
-            
-            if (assistantResponses.length < 2) {
-                showToast('Potrzeba co najmniej 2 odpowiedzi modeli do porównania', 'warning');
-                return;
-            }
-            
-            // Renderowanie porównania
-            elements.compareResults.innerHTML = `
-                <div class="col-span-1 md:col-span-2">
-                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg mb-4">
-                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Wiadomość użytkownika</div>
-                        <div class="whitespace-pre-wrap bg-white dark:bg-gray-800 p-3 rounded">${escapeHtml(lastUserMessage.content)}</div>
-                    </div>
+// Pokazanie modalu porównywania
+function showCompareModal() {
+    if (!state.currentChatId || state.chatHistory[state.currentChatId].length === 0) {
+        showToast('Brak wiadomości do porównania', 'warning');
+        return;
+    }
+    
+    // Pobranie ostatniej wiadomości użytkownika i wszystkich odpowiedzi asystenta
+    const chat = state.chatHistory[state.currentChatId];
+    const lastUserMessage = [...chat].reverse().find(m => m.role === 'user');
+    
+    if (!lastUserMessage) {
+        showToast('Nie znaleziono wiadomości użytkownika do porównania', 'warning');
+        return;
+    }
+    
+    const assistantResponses = chat.filter(m => 
+        m.role === 'assistant' && 
+        m.timestamp > lastUserMessage.timestamp
+    );
+    
+    if (assistantResponses.length < 2) {
+        showToast('Potrzeba co najmniej 2 odpowiedzi modeli do porównania', 'warning');
+        return;
+    }
+    
+    // Zmieniamy grid na bardziej elastyczny, aby zmieścić więcej kolumn na większych ekranach
+    elements.compareResults.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
+    
+    // Renderowanie porównania
+    elements.compareResults.innerHTML = `
+        <div class="col-span-full">
+            <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg mb-4">
+                <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Wiadomość użytkownika</div>
+                <div class="whitespace-pre-wrap bg-white dark:bg-gray-800 p-3 rounded">${escapeHtml(lastUserMessage.content)}</div>
+            </div>
+        </div>
+    `;
+    
+    // Dodawanie odpowiedzi do grida
+    assistantResponses.forEach(response => {
+        const model = state.models.find(m => m.id === response.modelId);
+        
+        const responseElement = document.createElement('div');
+        responseElement.className = 'bg-white dark:bg-gray-800 rounded-lg shadow p-4 h-full';
+        responseElement.innerHTML = `
+            <div class="flex items-center mb-2">
+                <div class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center mr-2">
+                    <i class="fas fa-robot text-xs"></i>
                 </div>
-            `;
-            
-            assistantResponses.forEach(response => {
-                const model = state.models.find(m => m.id === response.modelId);
-                
-                const responseElement = document.createElement('div');
-                responseElement.className = 'bg-white dark:bg-gray-800 rounded-lg shadow p-4';
-                responseElement.innerHTML = `
-                    <div class="flex items-center mb-2">
-                        <div class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center mr-2">
-                            <i class="fas fa-robot text-xs"></i>
-                        </div>
-                        <h4 class="font-medium">${model ? model.name : 'Nieznany model'}</h4>
-                    </div>
-                    <div class="whitespace-pre-wrap text-gray-800 dark:text-gray-200">${escapeHtml(response.content)}</div>
-                    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">${formatTime(response.timestamp)}</div>
-                `;
-                
-                elements.compareResults.appendChild(responseElement);
-            });
-            
-            elements.compareModal.classList.remove('hidden');
-        }
+                <h4 class="font-medium">${model ? model.name : 'Nieznany model'}</h4>
+            </div>
+            <div class="whitespace-pre-wrap text-gray-800 dark:text-gray-200 max-h-96 overflow-y-auto">${escapeHtml(response.content)}</div>
+            <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">${formatTime(response.timestamp)}</div>
+        `;
+        
+        elements.compareResults.appendChild(responseElement);
+    });
+    
+    elements.compareModal.classList.remove('hidden');
+}
 
         // Pokazanie powiadomienia toast
         function showToast(message, type = 'success') {
@@ -1855,4 +1859,4 @@ document.addEventListener('click', function(event) {
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
-</html>
+</html
